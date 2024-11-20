@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arc Chain Plotter</title>
+	
+	<style>
+    canvas { 
+        background: lightgray;  /* Or any contrasting color */
+        border: 1px solid black;
+    }
+    </style>
+</head>
+<body>
+<div>
+    <canvas id="arcCanvas" width="500" height="500"></canvas>
+  <!-- Add this to your HTML body -->
+<div id="debugLog" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; overflow-y: scroll; background: white; color: black;"></div>
+</div>
+<input type="file" id="file-input" />
+<select name="outline-selector" id="outline-selector"></select>
+
+
+<h3>Contents of the file:</h3>
+<pre id="file-content"></pre>
+<script type="module">
+	import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle.js';
+	window.plot_segments=plot_segments;
+	window.SegmentsLengthArea=SegmentsLengthArea;
+	window.TurtlePathLengthArea=TurtlePathLengthArea;
+</script>
+<script>
+const deg=Math.PI/180;
+const rad2deg=1/deg;
+function debugLog(obj) {
+    const logElement = document.getElementById('debugLog');
+    logElement.innerHTML +=  JSON.stringify(obj)+ '<br>';
+    logElement.scrollTop = logElement.scrollHeight; // Auto scroll to bottom
+}
+</script>
+<script>
+function formatFloat(num, decimalPlaces) {
+  return num.toFixed(decimalPlaces);
+}
+function deepCopyArray(arr) {
+    return arr.map(item => Array.isArray(item) ? deepCopyArray(item) : item);
+}
+
+// Initialization code
+
+var filename = "readme.txt";
+var text = "Text of the file goes here.";
+var blob = new Blob([text], {type:'text/gcode'});
+var link = document.createElement("a");
+link.download = filename;
+link.innerHTML = "Download File";
+link.href = window.URL.createObjectURL(blob);
+document.body.appendChild(link)
+    </script>|
+<script src="js-yaml.min.js"></script>
+
+<script type="text/javascript">
+var outlines
+var brickwork
+let cookie_cutter_area=2000.0;
+let yamlData=null;
+  try {
+    const yamlData = `
+Duck:
+- [0.4, -10.0]
+- [13.297, 25.0]
+- [3, -80.0]
+- [4, 160.0]
+- [22.913, 90.0]
+- [15, 90.0]
+- [5, -90.0]
+- [5, 20.0]
+- [3, 170.0]
+- [2, -20.0]
+- [3, -90.0]
+- [15, 220.0]
+- [5, -125.0]
+    `;
+
+    // Since js-yaml is loaded via a script tag, it should be globally available as window.jsyaml
+    if (typeof jsyaml === 'undefined') {
+      throw new Error('js-yaml library not loaded');
+    }
+	else {
+		debugLog('jsaml is loaded1')
+	}
+
+    const options = {
+      mapAsMap: true  // This will return a Map instead of an object
+    };
+    outlines = jsyaml.load(yamlData, options);
+    outlines["Duck"].forEach((x)=>{x[1]*=deg;});
+//    debugLog(parsedData instanceof Object); // Should be true if mapAsMap option works
+//    debugLog(parsedData['Duck'][1]); // Should log 'value1'
+  } catch (e) {
+    debugLog(e);
+  }
+
+function readSingleFile(e) {
+  var file = e.target.files[0];
+  if (!file) {
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var contents = e.target.result;
+	let decodedContents=jsyaml.load(contents);
+	outlines=decodedContents["outlines"];
+	beickworks=decodedContents["brickworks"];
+	while(outlineSelector.options.length) outlineSelector.options.remove(0);
+	Object.entries(outlines).forEach(([k2,v2]) => {
+			v2.forEach((x)=>{x[1]*=deg;});
+			var el = document.createElement("option");
+			el.textContent=k2;
+			el.value=k2;
+			outlineSelector.appendChild(el)
+			
+		});
+//    displayContents(contents);
+  };
+  reader.readAsText(file);
+}
+
+function displayContents(contents) {
+  var element = document.getElementById('file-content');
+  element.textContent = contents;
+}
+
+function drawSelectedOutline(e) {
+	const canvas = document.getElementById('arcCanvas');
+    const ctx = canvas.getContext('2d');
+	ctx.reset();
+	ctx.clearRect(0,0,canvas.width,canvas.height)
+	ctx.translate(canvas.width/2,canvas.height/2);
+	ctx.scale(1,1);
+//	debugLog("target value= "+e.target.value);
+//	debugLog("outlines[e.target.value]= "+outlines[e.target.value]);
+    let key=e.target.value;
+	if (key===undefined) key="Duck";
+	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]);
+	let scale=Math.sqrt(cookie_cutter_area/a);
+	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
+	let a0=[1,0];
+	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5]
+    plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,scale:scale*5});
+	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:3,scale:scale*5});
+	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:-3,scale:scale*5});
+}
+
+document.getElementById('file-input')
+  .addEventListener('change', readSingleFile, false);
+
+var outlineSelector=document.getElementById('outline-selector');
+//debugLog(outlineSelector);
+outlineSelector.addEventListener('change', drawSelectedOutline, false);
+document.addEventListener("DOMContentLoaded", drawSelectedOutline);
+</script>
+ 
+</body>
+</html>
