@@ -27,7 +27,9 @@ def filter_json(s,max_indent=6):
       
 filename='cookie_cutters'
 with open(filename+'.yaml','r') as f:
-  with open(filename+'.json','w') as g:
-    raw_json=json.dumps(yaml.safe_load(f),indent=2,sort_keys=False)
-    g.write(''.join(filter_json(raw_json,max_indent=6)))
+  cc=yaml.safe_load(f)
+  
+with open(filename+'.json','w') as g:
+  raw_json=json.dumps(cc,indent=2,sort_keys=False)
+  g.write(''.join(filter_json(raw_json,max_indent=6)))
 

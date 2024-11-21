@@ -102,7 +102,7 @@ function readSingleFile(e) {
 	let decodedContents=JSON.parse(contents);//jsyaml.load(contents);
 	outlines=decodedContents["outlines"];
 	brickworks=decodedContents["brickworks"];
-// 	displayContents(stringifyFormatted(decodedContents,2,3))
+//    displayContents(stringifyFormatted(decodedContents,2,3))
 	while(outlineSelector.options.length) outlineSelector.options.remove(0);
 	Object.entries(outlines).forEach(([k2,v2]) => {
 			v2.forEach((x)=>{x[1]*=deg;});
