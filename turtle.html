@@ -26,9 +26,11 @@
 <pre id="file-content"></pre>
 <script type="module">
 	import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle.js';
+	import {stringifyFormatted} from './json_utils.js';
 	window.plot_segments=plot_segments;
 	window.SegmentsLengthArea=SegmentsLengthArea;
 	window.TurtlePathLengthArea=TurtlePathLengthArea;
+	window.stringifyFormatted=stringifyFormatted;
 </script>
 <script>
 const deg=Math.PI/180;
@@ -57,44 +59,31 @@ link.download = filename;
 link.innerHTML = "Download File";
 link.href = window.URL.createObjectURL(blob);
 document.body.appendChild(link)
-    </script>|
-<script src="../js-yaml.min.js"></script>
-
+    </script>
 <script type="text/javascript">
 var outlines
-var brickwork
+var brickworks
 let cookie_cutter_area=2000.0;
 let yamlData=null;
   try {
-    const yamlData = `
-Duck:
-- [0.4, -10.0]
-- [13.297, 25.0]
-- [3, -80.0]
-- [4, 160.0]
-- [22.913, 90.0]
-- [15, 90.0]
-- [5, -90.0]
-- [5, 20.0]
-- [3, 170.0]
-- [2, -20.0]
-- [3, -90.0]
-- [15, 220.0]
-- [5, -125.0]
-    `;
-
-    // Since js-yaml is loaded via a script tag, it should be globally available as window.jsyaml
-    if (typeof jsyaml === 'undefined') {
-      throw new Error('js-yaml library not loaded');
-    }
-	else {
-		debugLog('jsaml is loaded1')
-	}
-
-    const options = {
-      mapAsMap: true  // This will return a Map instead of an object
-    };
-    outlines = jsyaml.load(yamlData, options);
+    const jsonData = `{
+    "Duck": [
+      [ 0.4, -10.0 ],
+      [ 13.297, 25.0 ],
+      [ 3, -80.0 ],
+      [ 4, 160.0 ],
+      [ 22.913, 90.0 ],
+      [ 15, 90.0 ],
+      [ 5, -90.0 ],
+      [ 5, 20.0 ],
+      [ 3, 170.0 ],
+      [ 2, -20.0 ],
+      [ 3, -90.0 ],
+      [ 15, 220.0 ],
+      [ 5, -125.0 ]
+    ]
+}	`;
+    outlines = JSON.parse(jsonData);
     outlines["Duck"].forEach((x)=>{x[1]*=deg;});
 //    debugLog(parsedData instanceof Object); // Should be true if mapAsMap option works
 //    debugLog(parsedData['Duck'][1]); // Should log 'value1'
@@ -110,9 +99,10 @@ function readSingleFile(e) {
   var reader = new FileReader();
   reader.onload = function(e) {
     var contents = e.target.result;
-	let decodedContents=jsyaml.load(contents);
+	let decodedContents=JSON.parse(contents);//jsyaml.load(contents);
 	outlines=decodedContents["outlines"];
-	beickworks=decodedContents["brickworks"];
+	brickworks=decodedContents["brickworks"];
+// 	displayContents(stringifyFormatted(decodedContents,2,3))
 	while(outlineSelector.options.length) outlineSelector.options.remove(0);
 	Object.entries(outlines).forEach(([k2,v2]) => {
 			v2.forEach((x)=>{x[1]*=deg;});
