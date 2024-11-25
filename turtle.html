@@ -11,6 +11,18 @@
         border: 1px solid black;
     }
     </style>
+<script type="module" defer> 
+	import {setupUI,updateUI,setupSlider,makeSlider,makeCheckbox} from "./webgl_lessons_ui.module.js"
+	
+	window.webglLessonsUI={
+    setupUI: setupUI,
+    updateUI: updateUI,
+    setupSlider: setupSlider,
+    makeSlider: makeSlider,
+    makeCheckbox: makeCheckbox,
+  }
+  console.log(Object.keys(webglLessonsUI))
+</script>
 </head>
 <body>
 <div>
@@ -31,20 +43,50 @@
 	window.SegmentsLengthArea=SegmentsLengthArea;
 	window.TurtlePathLengthArea=TurtlePathLengthArea;
 	window.stringifyFormatted=stringifyFormatted;
+	debugLog("in Module1");
+</script>
+
+<script type="module" id="my_script">
+export function hello(msg="Hello from my_script!") {
+  console.log(msg);
+  return msg;
+}
+debugLog("in my_script" );
+</script>
+<script type="module">
+import {hello} from "./my_script";
+hello();
+debugLog("in Module3" );
 </script>
 <script>
 const deg=Math.PI/180;
 const rad2deg=1/deg;
+var targetAngleRadians;
+let targetRadius=10;
+const target=[null,null,null]
 function debugLog(obj) {
     const logElement = document.getElementById('debugLog');
     logElement.innerHTML +=  JSON.stringify(obj)+ '<br>';
     logElement.scrollTop = logElement.scrollHeight; // Auto scroll to bottom
-}
+};
+
+function updateTargetAngle(event, ui) {
+    targetAngleRadians = ui.value*deg;
+    target[0] = Math.sin(targetAngleRadians) * targetRadius;
+    target[2] = Math.cos(targetAngleRadians) * targetRadius;
+//    drawScene();
+  }
+
+</script>
+<script type="module">
+webglLessonsUI.setupSlider("#targetAngle", {value: targetAngleRadians*rad2deg, slide: updateTargetAngle, min: -360, max: 360});
+
 </script>
 <script>
 function formatFloat(num, decimalPlaces) {
   return num.toFixed(decimalPlaces);
 }
+
 function deepCopyArray(arr) {
     return arr.map(item => Array.isArray(item) ? deepCopyArray(item) : item);
 }
@@ -61,12 +103,8 @@ link.href = window.URL.createObjectURL(blob);
 document.body.appendChild(link)
     </script>
 <script type="text/javascript">
-var outlines
-var brickworks
-let cookie_cutter_area=2000.0;
-let yamlData=null;
-  try {
-    const jsonData = `{
+let cookieCutterArea=2000;
+let outlines={
     "Duck": [
       [ 0.4, -10.0 ],
       [ 13.297, 25.0 ],
@@ -82,14 +120,42 @@ let yamlData=null;
       [ 15, 220.0 ],
       [ 5, -125.0 ]
     ]
-}	`;
-    outlines = JSON.parse(jsonData);
-    outlines["Duck"].forEach((x)=>{x[1]*=deg;});
-//    debugLog(parsedData instanceof Object); // Should be true if mapAsMap option works
-//    debugLog(parsedData['Duck'][1]); // Should log 'value1'
-  } catch (e) {
-    debugLog(e);
-  }
+    };
+let  brickworks={
+    "centered": [
+      [ [ -0.45, 0.9 ], [ -1.35, 0.9 ], [ 0.45, 0.9 ], [ 1.35, 0.9 ] ],
+      [ [ -0.8, 0.8 ], [ -1.6, 0.8 ], [ 0.8, 0.8 ], [ 1.6, 0.8 ], [ 0.0, 0.8 ] ],
+      [ [ -1.1, 0.733 ], [ -1.833, 0.733 ], [ 1.1, 0.733 ], [ 1.833, 0.733 ], [ -0.367, 0.733 ], [ 0.367, 0.733 ] ],
+      [ [ -0.92, 0.92 ], [ -1.84, 0.92 ], [ 0.92, 0.92 ], [ 1.84, 0.92 ], [ 0.0, 0.92 ] ],
+      [ [ 0.0, 1.0 ], [ -1.9, 1.0 ], [ 1.9, 1.0 ] ],
+      [ [ 0.0, 0.8 ], [ -2.0, 1.0 ], [ 2.0, 1.0 ] ],
+      [ [ 0.0, 0.6 ], [ -2.05, 0.9 ], [ 2.05, 0.9 ] ],
+      [ [ 0.0, 0.5 ], [ -2.05, 0.9 ], [ 2.05, 0.9 ] ],
+      [ [ 0.0, 0.5 ], [ -2.05, 0.9 ], [ 2.05, 0.9 ] ],
+      [ [ 0.0, 0.5 ], [ -1.95, 0.9 ], [ 1.95, 0.9 ] ],
+      [ [ 0.0, 0.5 ], [ -1.85, 0.9 ], [ 1.85, 0.9 ] ],
+      [ [ 0.0, 0.5 ], [ -1.7, 1.0 ], [ 1.7, 1.0 ] ],
+      [ [ 0.0, 0.5 ], [ -1.5, 1.0 ], [ 1.5, 1.0 ] ],
+      [ [ 0.0, 0.5 ], [ -1.3, 1.0 ], [ 1.3, 1.0 ] ],
+      [ [ 0.0, 0.5 ], [ -1.1, 1.0 ], [ 1.1, 1.0 ] ],
+      [ [ 0.0, 0.5 ], [ -0.9, 1.0 ], [ 0.9, 1.0 ] ],
+      [ [ 0.0, 0.6 ], [ -0.75, 0.9 ], [ 0.75, 0.9 ] ],
+      [ [ -0.5, 1.0 ], [ 0.5, 1.0 ] ],
+      [ [ -0.533, 0.533 ], [ -0.0, 0.533 ], [ 0.533, 0.533 ] ],
+      [ [ -0.3, 0.6 ], [ 0.3, 0.6 ] ]
+    ]
+  };
+
+function updateOutlineSelector(){
+	while(outlineSelector.options.length) outlineSelector.options.remove(0);
+	Object.entries(outlines).forEach(([k2,v2]) => {
+			v2.forEach((x)=>{x[1]*=deg;});
+			var el = document.createElement("option");
+			el.textContent=k2;
+			el.value=k2;
+			outlineSelector.appendChild(el)
+    });
+};
 
 function readSingleFile(e) {
   var file = e.target.files[0];
@@ -101,19 +167,9 @@ function readSingleFile(e) {
     var contents = e.target.result;
 	let decodedContents=JSON.parse(contents);//jsyaml.load(contents);
 	outlines=decodedContents["outlines"];
+	updateOutlineSelector();
 	brickworks=decodedContents["brickworks"];
-//    displayContents(stringifyFormatted(decodedContents,2,3))
-	while(outlineSelector.options.length) outlineSelector.options.remove(0);
-	Object.entries(outlines).forEach(([k2,v2]) => {
-			v2.forEach((x)=>{x[1]*=deg;});
-			var el = document.createElement("option");
-			el.textContent=k2;
-			el.value=k2;
-			outlineSelector.appendChild(el)
-			
-		});
-//    displayContents(contents);
-  };
+};
   reader.readAsText(file);
 }
 
@@ -131,10 +187,13 @@ function drawSelectedOutline(e) {
 	ctx.scale(1,1);
 //	debugLog("target value= "+e.target.value);
 //	debugLog("outlines[e.target.value]= "+outlines[e.target.value]);
-    let key=e.target.value;
+    let key
+	try {
+		key=e.target.value;
+	} catch (e) {}
 	if (key===undefined) key="Duck";
 	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]);
-	let scale=Math.sqrt(cookie_cutter_area/a);
+	let scale=Math.sqrt(cookieCutterArea/a);
 	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
 	let a0=[1,0];
 	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5]
@@ -146,11 +205,18 @@ function drawSelectedOutline(e) {
 document.getElementById('file-input')
   .addEventListener('change', readSingleFile, false);
 
-var outlineSelector=document.getElementById('outline-selector');
+var outlineSelector
+function initDocument(){
+	outlineSelector=document.getElementById('outline-selector');
+	outlineSelector.addEventListener('change', drawSelectedOutline, false);
+	updateOutlineSelector();
+	drawSelectedOutline();
+}
+
 //debugLog(outlineSelector);
-outlineSelector.addEventListener('change', drawSelectedOutline, false);
-document.addEventListener("DOMContentLoaded", drawSelectedOutline);
+
+document.addEventListener("DOMContentLoaded", initDocument);
 </script>
- 
+<div id="targetAngle" class="slider"></div> 
 </body>
 </html>
