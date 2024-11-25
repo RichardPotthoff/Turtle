@@ -159,7 +159,16 @@ def process_html(html_path,minify=False):
         file.write(str(soup))
 
 if __name__ == "__main__":
+    os.chdir('../widgets')
     html_file = "index.html"
     process_html(html_file,minify=True)
     print("HTML processing completed with modules converted to IIFE.")
-  
+    os.chdir("/private/var/mobile/Containers/Data/Application/77881549-3FA6-4E4B-803F-D53B172FC865/Documents/www")
+    html_file = "webgl-3d-camera-look-at-heads.html"
+    process_html(html_file,minify=True)
+    print("HTML processing completed with modules converted to IIFE.")
+    os.chdir('../Turtle')
+    html_file = "index.html"
+    process_html(html_file,minify=True)
+    print("HTML processing completed with modules converted to IIFE.")
+
