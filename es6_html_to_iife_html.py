@@ -19,6 +19,7 @@ def minify_javascript(code,keep_newlines=False):
     # Remove all comments    
     code = re.sub(r'//.*?(?=\n|$)', '', code)  # Single-line comments
     code = re.sub(r'/\*[\s\S]*?\*/', '', code)  # Multi-line comments
+    #remove unnecessary spaces around delimiters
     delimiters='][=(){}|*:<>;,?/%&'
     if keep_newlines:
       code = re.sub(r'[ \t]*(['+delimiters+'])', r'\1', code)#remove all spaces and tabs in front of special characters
@@ -36,24 +37,26 @@ def minify_javascript(code,keep_newlines=False):
 
 
 def convert_es6_to_iife(content, module_name=None, minify=False):
-    def convert_import_to_let(module_name, destructuring):
+    def convert_import_to_let(module_filename,import_name, destructuring):
+      result=''
     # If it's destructuring, use it directly
-      if destructuring.startswith('{'):
-        return f"let {destructuring} = {module_name};"
-      else:  # If it's import *, we return a more generic destructuring
-        return f"let {{/* Destructure here */}} = {module_name};"
+      if destructuring:
+        result+= f'let {destructuring} = modules["{module_filename}"];\n'
+      if import_name:
+        result+= f'let {import_name} = modules["{module_filename}"];\n'
+      return result
     import_pattern = r'^\s*(import\s+(?:(?:(?:(\w+)(?:[,]|\s)\s*)?(?:(\{[^}]*\}\s)|(?:\*\s+as\s+(\w+))\s)?)\s*from\s+)?[\'"]([^"\']+)[\'"]\s*;?)\s*$'
     content='\n'+content
     imports_ = re.findall(import_pattern,content, re.MULTILINE)
     imports={}
     for import_statement, default, destructuring,imodule_name, file_path in imports_:
         # Remove the import statement entirely
-        file_name = re.sub(r'[.-]',r'_',os.path.splitext(os.path.basename(file_path))[0])
+        file_name = os.path.basename(file_path)
         imports[file_name]=file_path
-        if imodule_name and imodule_name != file_name:
-          print(f"Warning: Module name '{imodule_name}' does not match file name '{file_name}'.")
+#        if imodule_name and imodule_name != file_name:
+#          print(f"Warning: Module name '{imodule_name}' does not match file name '{file_name}'.")
         content = re.sub(import_pattern, 
-                convert_import_to_let(file_name, destructuring)+r'\n', content, count=1, flags=re.MULTILINE)
+                convert_import_to_let(file_name, imodule_name, destructuring)+r'\n', content, count=1, flags=re.MULTILINE)
                 
     # Handle exports - assuming all exports are at the module level
     export_pattern = r'^export\s+(?:function|const)\s+(\w+)(.*)$'
@@ -67,7 +70,7 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
 
     # Wrap the content in an IIFE
     if exports:  # Only add the export object if there are exports
-        iife_wrapper = f'\n(function(global) {{\n{content}\n  global["{module_name}"] = {export_object};\n}})(window);'
+        iife_wrapper = f'\n(function(global) {{\n{content}\nif(!("modules" in global)){{\n global["modules"]={{}}\n}}\nglobal.modules["{module_name}"] = {export_object};\n}})(window);'
     else:
         iife_wrapper = f'\n(function(global) {{\n{content}\n}})(window);'
     if minify:
@@ -83,13 +86,13 @@ def gather_dependencies(content, processed_modules, dependencies, module_dir=Non
         # Convert the module itself 
     converted,imports = convert_es6_to_iife(content, module_name, minify=minify)
     dependency_content = ""
-    for dependency, file_path in imports.items():
-        dependencies[module_name].add(dependency)
-        full_path = os.path.join(os.path.dirname(module_dir), file_path)
-        dependency_dir=os.path.dirname(full_path)
+    for ifile_name,ifile_path in imports.items():
+        dependencies[module_name].add(ifile_name)
+        full_path = os.path.join(os.path.dirname(module_dir), ifile_path)
+        imodule_dir=os.path.dirname(full_path)
         with open(full_path, 'r') as f:
            content = f.read()
-        dependency_content += gather_dependencies(content, processed_modules, dependencies,module_dir=dependency_dir,module_name=dependency, minify=minify)
+        dependency_content += gather_dependencies(content, processed_modules, dependencies,module_dir=imodule_dir,module_name=ifile_name, minify=minify)
     if module_name:
       processed_modules.add(module_name)
     return dependency_content + converted
@@ -107,7 +110,7 @@ def process_html(html_path,minify=False):
             if module_path!=None:
                 full_path = os.path.join(os.path.dirname(html_path), module_path)
                 module_dir = os.path.dirname(full_path)
-                module_name = re.sub(r'[.-]',r'_',os.path.splitext(os.path.basename(full_path))[0])
+                module_name = os.path.basename(full_path)
                 # Gather all dependencies for this module
                 with open(full_path, 'r') as f:
                     content = f.read()
