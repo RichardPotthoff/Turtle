@@ -3,12 +3,10 @@ import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
-def minify_javascript(code,keep_newlines=False):
-    # Remove all comments
+def minify_javascript(code,keep_newlines=True):
     # Preserve string literals
 #    def preserve_strings(match):
 #        return match.group(0)
-    
     # Replace strings temporarily with placeholders
     placeholders = {}
     string_pattern = r'((["\'])(?:(?=(\\?))\3.)*?\2)'
@@ -17,7 +15,8 @@ def minify_javascript(code,keep_newlines=False):
         placeholder = f'__STRING_{i}__'
         code = code.replace(s[0], placeholder, 1)
         placeholders[placeholder] = s[0]
-         
+        
+    # Remove all comments    
     code = re.sub(r'//.*?(?=\n|$)', '', code)  # Single-line comments
     code = re.sub(r'/\*[\s\S]*?\*/', '', code)  # Multi-line comments
     delimiters='][=(){}|*:<>;,?/%&'
@@ -43,16 +42,17 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
         return f"let {destructuring} = {module_name};"
       else:  # If it's import *, we return a more generic destructuring
         return f"let {{/* Destructure here */}} = {module_name};"
-
-    # Remove or replace 'import * as' statements
-    import_pattern = r'^\s*(import\s+((?:\{[^}]*\})|\*)(\s+as\s+(\w+))?\s+from\s+[\'"]([^"\']+)[\'"]\s*;?)\s*$'
-    imports = re.findall(import_pattern, content, re.MULTILINE)
-    for import_statement, destructuring, _,imodule_name, file_path in imports:
+    import_pattern = r'^\s*(import\s+(?:(?:(?:(\w+)(?:[,]|\s)\s*)?(?:(\{[^}]*\}\s)|(?:\*\s+as\s+(\w+))\s)?)\s*from\s+)?[\'"]([^"\']+)[\'"]\s*;?)\s*$'
+    content='\n'+content
+    imports_ = re.findall(import_pattern,content, re.MULTILINE)
+    imports={}
+    for import_statement, default, destructuring,imodule_name, file_path in imports_:
         # Remove the import statement entirely
-        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        file_name = re.sub(r'[.-]',r'_',os.path.splitext(os.path.basename(file_path))[0])
+        imports[file_name]=file_path
         if imodule_name and imodule_name != file_name:
           print(f"Warning: Module name '{imodule_name}' does not match file name '{file_name}'.")
-        content = re.sub(import_pattern, r'//'+import_statement+r'\n'+
+        content = re.sub(import_pattern, 
                 convert_import_to_let(file_name, destructuring)+r'\n', content, count=1, flags=re.MULTILINE)
                 
     # Handle exports - assuming all exports are at the module level
@@ -72,7 +72,7 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
         iife_wrapper = f'\n(function(global) {{\n{content}\n}})(window);'
     if minify:
         iife_wrapper = minify_javascript(iife_wrapper)
-    return iife_wrapper
+    return iife_wrapper,imports
 
 def gather_dependencies(content, processed_modules, dependencies, module_dir=None, module_name=None, minify=False):
     if module_name and module_name in processed_modules:
@@ -81,13 +81,9 @@ def gather_dependencies(content, processed_modules, dependencies, module_dir=Non
     # Process dependencies first
 
         # Convert the module itself 
-    converted = convert_es6_to_iife(content, module_name, minify=minify)
-    
-    import_pattern = r'^\s*import\s+((?:\{[^}]*\})|\*)(\s+as\s+(\w+))?\s+from\s+[\'"]([^"\']+)[\'"]\s*;?\s*$'
-    imports = re.findall(import_pattern, content, re.MULTILINE)
+    converted,imports = convert_es6_to_iife(content, module_name, minify=minify)
     dependency_content = ""
-    for _, _, _, file_path in imports:
-        dependency = os.path.splitext(os.path.basename(file_path))[0]
+    for dependency, file_path in imports.items():
         dependencies[module_name].add(dependency)
         full_path = os.path.join(os.path.dirname(module_dir), file_path)
         dependency_dir=os.path.dirname(full_path)
@@ -111,18 +107,20 @@ def process_html(html_path,minify=False):
             if module_path!=None:
                 full_path = os.path.join(os.path.dirname(html_path), module_path)
                 module_dir = os.path.dirname(full_path)
-                module_name = os.path.splitext(os.path.basename(full_path))[0]
+                module_name = re.sub(r'[.-]',r'_',os.path.splitext(os.path.basename(full_path))[0])
                 # Gather all dependencies for this module
                 with open(full_path, 'r') as f:
                     content = f.read()
-                iife_content = gather_dependencies(content, processed_modules, dependencies,  
-                module_dir=module_dir, module_name=module_name,  minify=minify)
                 del script['src']  # Remove the src attribute as we've included the content
-                script['type'] = 'text/javascript'  # Change type to standard JavaScript
-                # Insert the converted IIFE content for this module and its dependencies
-                script.string = iife_content
             else:
-                pass
+                content=script.string
+                module_name=None
+                module_dir=os.path.dirname(html_path)
+            script['type'] = 'text/javascript'  # Change type to standard JavaScript
+            # Insert the converted IIFE content for this module and its dependencies
+            iife_content = gather_dependencies(content, processed_modules, dependencies,  
+                module_dir=module_dir, module_name=module_name,  minify=minify)
+            script.string = iife_content
         else:
             # For regular scripts, insert their content
             script_path = script.get('src',None)
