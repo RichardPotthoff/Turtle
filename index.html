@@ -20,15 +20,20 @@
     setupSlider: setupSlider,
     makeSlider: makeSlider,
     makeCheckbox: makeCheckbox,
-  }
-  console.log(Object.keys(webglLessonsUI))
+  };
+  console.log(Object.keys(webglLessonsUI));
+  function debugLog(obj) {
+    const logElement = document.getElementById('debugLogText');
+    logElement.innerHTML +=  JSON.stringify(obj)+ '<br>';
+    logElement.scrollTop = logElement.scrollHeight; // Auto scroll to bottom
+};
 </script>
 </head>
 <body>
 <div>
     <canvas id="arcCanvas" width="500" height="500"></canvas>
   <!-- Add this to your HTML body -->
-<div id="debugLog" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; overflow-y: scroll; background: white; color: black;"></div>
+<div id="debugLogText" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; overflow-y: scroll; background: white; color: black;"></div>
 </div>
 <input type="file" id="file-input" />
 <select name="outline-selector" id="outline-selector"></select>
@@ -43,32 +48,15 @@
 	window.SegmentsLengthArea=SegmentsLengthArea;
 	window.TurtlePathLengthArea=TurtlePathLengthArea;
 	window.stringifyFormatted=stringifyFormatted;
-	debugLog("in Module1");
+	console.log("in Module1");
 </script>
 
-<script type="module" id="my_script">
-export function hello(msg="Hello from my_script!") {
-  console.log(msg);
-  return msg;
-}
-debugLog("in my_script" );
-</script>
-<script type="module">
-import {hello} from "./my_script";
-hello();
-debugLog("in Module3" );
-</script>
 <script>
 const deg=Math.PI/180;
 const rad2deg=1/deg;
 var targetAngleRadians;
 let targetRadius=10;
-const target=[null,null,null]
-function debugLog(obj) {
-    const logElement = document.getElementById('debugLog');
-    logElement.innerHTML +=  JSON.stringify(obj)+ '<br>';
-    logElement.scrollTop = logElement.scrollHeight; // Auto scroll to bottom
-};
+const target=[null,null,null];
 
 function updateTargetAngle(event, ui) {
     targetAngleRadians = ui.value*deg;
@@ -102,7 +90,7 @@ link.innerHTML = "Download File";
 link.href = window.URL.createObjectURL(blob);
 document.body.appendChild(link)
     </script>
-<script type="text/javascript">
+<script id="main" type="text/javascript">
 let cookieCutterArea=2000;
 let outlines={
     "Duck": [
@@ -153,7 +141,7 @@ function updateOutlineSelector(){
 			var el = document.createElement("option");
 			el.textContent=k2;
 			el.value=k2;
-			outlineSelector.appendChild(el)
+			outlineSelector.appendChild(el);
     });
 };
 
@@ -182,7 +170,7 @@ function drawSelectedOutline(e) {
 	const canvas = document.getElementById('arcCanvas');
     const ctx = canvas.getContext('2d');
 	ctx.reset();
-	ctx.clearRect(0,0,canvas.width,canvas.height)
+	ctx.clearRect(0,0,canvas.width,canvas.height);
 	ctx.translate(canvas.width/2,canvas.height/2);
 	ctx.scale(1,1);
 //	debugLog("target value= "+e.target.value);
@@ -194,9 +182,9 @@ function drawSelectedOutline(e) {
 	if (key===undefined) key="Duck";
 	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]);
 	let scale=Math.sqrt(cookieCutterArea/a);
-	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
+	console.log("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
 	let a0=[1,0];
-	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5]
+	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];
     plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,scale:scale*5});
 	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:3,scale:scale*5});
 	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:-3,scale:scale*5});
@@ -205,7 +193,7 @@ function drawSelectedOutline(e) {
 document.getElementById('file-input')
   .addEventListener('change', readSingleFile, false);
 
-var outlineSelector
+var outlineSelector;
 function initDocument(){
 	outlineSelector=document.getElementById('outline-selector');
 	outlineSelector.addEventListener('change', drawSelectedOutline, false);
