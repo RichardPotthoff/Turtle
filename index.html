@@ -14,7 +14,7 @@
 <script type="module" defer> 
 	import {setupUI,updateUI,setupSlider,makeSlider,makeCheckbox} from "./webgl_lessons_ui.module.js"
 	
-	window.webglLessonsUI={
+    window.webglLessonsUI={
     setupUI: setupUI,
     updateUI: updateUI,
     setupSlider: setupSlider,
@@ -22,7 +22,9 @@
     makeCheckbox: makeCheckbox,
   };
   console.log(Object.keys(webglLessonsUI));
-  function debugLog(obj) {
+</script>
+<script>
+function debugLog(obj) {
     const logElement = document.getElementById('debugLogText');
     logElement.innerHTML +=  JSON.stringify(obj)+ '<br>';
     logElement.scrollTop = logElement.scrollHeight; // Auto scroll to bottom
@@ -182,7 +184,7 @@ function drawSelectedOutline(e) {
 	if (key===undefined) key="Duck";
 	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]);
 	let scale=Math.sqrt(cookieCutterArea/a);
-	console.log("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
+	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
 	let a0=[1,0];
 	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];
     plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,scale:scale*5});

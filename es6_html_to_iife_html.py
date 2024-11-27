@@ -3,7 +3,7 @@ import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
-def minify_javascript(code,keep_newlines=True):
+def minify_javascript(code,keep_newlines=False):
     # Preserve string literals
 #    def preserve_strings(match):
 #        return match.group(0)
