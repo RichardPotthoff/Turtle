@@ -20,15 +20,13 @@ def minify_javascript(code,keep_newlines=False):
          
     code = re.sub(r'//.*?(?=\n|$)', '', code)  # Single-line comments
     code = re.sub(r'/\*[\s\S]*?\*/', '', code)  # Multi-line comments
-
+    delimiters='][=(){}|*:<>;,?/%&'
     if keep_newlines:
-      code = re.sub(r'[ \t]*([][=(){}|*:<>;,?/%&])'      , r'\1', code)#remove all spaces and tabs in front of special characters
-      code = re.sub(      r'([][=(){}|*:<>;,?/%&])[ \t]*', r'\1', code)#remove all spaces and tabs after special characters
+      code = re.sub(r'[ \t]*(['+delimiters+'])', r'\1', code)#remove all spaces and tabs in front of special characters
+      code = re.sub(r'(['+delimiters+'])[ \t]*', r'\1', code)#remove all spaces and tabs after special characters
     else:
-    #  delimiters='][=(){}|*:<>;,?/%&'
-      delimiters=']=([{<|:,;?*>}/%&'
-      code = re.sub(r'\s*(['+delimiters+'])'      , r'\1', code)#remove all spaces and tabs in front of special characters
-      code = re.sub(     r'(['+delimiters+'])\s*', r'\1', code)#remove all spaces and tabs after special characters
+      code = re.sub(r'\s*(['+delimiters+'])', r'\1', code)#remove all spaces and tabs in front of special characters
+      code = re.sub(r'(['+delimiters+'])\s*', r'\1', code)#remove all spaces and tabs after special characters
     code = re.sub(r'[ \t]*\n\s*', r'\n', code)#keep only one line break if there are more than one
     code = re.sub(r'[ \t]+', ' ', code)# replace greater than one spaces with one space
     
@@ -56,10 +54,7 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
           print(f"Warning: Module name '{imodule_name}' does not match file name '{file_name}'.")
         content = re.sub(import_pattern, r'//'+import_statement+r'\n'+
                 convert_import_to_let(file_name, destructuring)+r'\n', content, count=1, flags=re.MULTILINE)
-        
-        # Replace all references to the module with the global object
-#        content = re.sub(r'\b' + module_name + r'\.', f'window["{file_name}"]', content)
-
+                
     # Handle exports - assuming all exports are at the module level
     export_pattern = r'^export\s+(?:function|const)\s+(\w+)(.*)$'
     exports = re.findall(export_pattern, content, re.MULTILINE)
@@ -133,13 +128,14 @@ def process_html(html_path,minify=False):
             script_path = script.get('src',None)
             if script_path:
                with open(os.path.join(os.path.dirname(html_path), script['src']), 'r') as f:
-                   script.string = minify_javascript(f.read())
+                   if minify:
+                     script.string = minify_javascript(f.read())
+                   else:
+                     script.string = f.read()
                del script['src']
             else:
-#              if script.get('id',None)=='main':
-                script.string=minify_javascript(script.string)
-#              else:
-#                script.string=minify_javascript_(script.string)
+                if minify:
+                   script.string=minify_javascript(script.string)
 
     with open('output.html', 'w') as file:
         file.write(str(soup))
