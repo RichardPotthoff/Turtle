@@ -3,7 +3,7 @@ import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
-def minify_javascript_(code,keep_newlines=False):
+def minify_javascript(code,keep_newlines=False):
     # Remove all comments
     # Preserve string literals
 #    def preserve_strings(match):
@@ -25,8 +25,10 @@ def minify_javascript_(code,keep_newlines=False):
       code = re.sub(r'[ \t]*([][=(){}|*:<>;,?/%&])'      , r'\1', code)#remove all spaces and tabs in front of special characters
       code = re.sub(      r'([][=(){}|*:<>;,?/%&])[ \t]*', r'\1', code)#remove all spaces and tabs after special characters
     else:
-      code = re.sub(r'\s*([][=(){}|*:<>;,?/%&])'      , r'\1', code)#remove all spaces and tabs in front of special characters
-      code = re.sub(      r'([][=(){}|*:<>;,?/%&])\s*', r'\1', code)#remove all spaces and tabs after special characters
+    #  delimiters='][=(){}|*:<>;,?/%&'
+      delimiters=']=([{<|:,;?*>}/%&'
+      code = re.sub(r'\s*(['+delimiters+'])'      , r'\1', code)#remove all spaces and tabs in front of special characters
+      code = re.sub(     r'(['+delimiters+'])\s*', r'\1', code)#remove all spaces and tabs after special characters
     code = re.sub(r'[ \t]*\n\s*', r'\n', code)#keep only one line break if there are more than one
     code = re.sub(r'[ \t]+', ' ', code)# replace greater than one spaces with one space
     
@@ -35,38 +37,7 @@ def minify_javascript_(code,keep_newlines=False):
         code = code.replace(placeholder, original, 1)
     return code
 
-def minify_javascript(code,keep_newlines=False):
-    # Remove all comments
-    code = re.sub(r'//.*?(?=\n|$)', '', code)  # Single-line comments
-    code = re.sub(r'/\*[\s\S]*?\*/', '', code)  # Multi-line comments
-    # Preserve string literals
-    def preserve_strings(match):
-        return match.group(0)
-    
-    # Replace strings temporarily with placeholders
-    placeholders = {}
-    string_pattern = r'([\'"])(?:(?=(\\?))\2.*?\1)'
-    strings = re.findall(string_pattern, code)
-    for i, s in enumerate(strings):
-        s = ''.join(s)
-        placeholder = f'__STRING_{i}__'
-        code = code.replace(s, placeholder, 1)
-        placeholders[placeholder] = s
-    if keep_newlines:
-      code = re.sub(r'[ \t]*([]=([{<|:,;?*>}])', r'\1', code)#remove all spaces and tabs in front of special characters
-      code = re.sub(r'([]=([{<|:,;?*>}])[ \t]*', r'\1', code)#remove all spaces and tabs after special characters
-    else:
-      code = re.sub(r'\s*([]=([{<|:,;?*>}])', r'\1', code)#remove all spaces and tabs in front of special characters
-      code = re.sub(r'([]=([{<|:,;?*>}])\s*', r'\1', code)#remove all spaces and tabs after special characters
 
-    code = re.sub(r'[ \t]*\n\s*', r'\n', code)#keep only one line break if there are more than one
-    code = re.sub(r'[ \t]+', ' ', code)# replace greater than one spaces with one space
-    
-    # Add back preserved strings
-    for placeholder, original in placeholders.items():
-        code = code.replace(placeholder, original, 1)
-    return code
-        
 def convert_es6_to_iife(content, module_name=None, minify=False):
     def convert_import_to_let(module_name, destructuring):
     # If it's destructuring, use it directly
@@ -105,7 +76,7 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
     else:
         iife_wrapper = f'\n(function(global) {{\n{content}\n}})(window);'
     if minify:
-        iife_wrapper = minify_javascript_(iife_wrapper)
+        iife_wrapper = minify_javascript(iife_wrapper)
     return iife_wrapper
 
 def gather_dependencies(content, processed_modules, dependencies, module_dir=None, module_name=None, minify=False):
@@ -162,13 +133,13 @@ def process_html(html_path,minify=False):
             script_path = script.get('src',None)
             if script_path:
                with open(os.path.join(os.path.dirname(html_path), script['src']), 'r') as f:
-                   script.string = minify_javascript_(f.read(),keep_newlines=False)
+                   script.string = minify_javascript(f.read())
                del script['src']
             else:
-              if script.get('id',None)=='main':
+#              if script.get('id',None)=='main':
                 script.string=minify_javascript(script.string)
-              else:
-                script.string=minify_javascript_(script.string)
+#              else:
+#                script.string=minify_javascript_(script.string)
 
     with open('output.html', 'w') as file:
         file.write(str(soup))
