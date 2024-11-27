@@ -3,6 +3,38 @@ import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
+def minify_javascript_(code,keep_newlines=False):
+    # Remove all comments
+    # Preserve string literals
+#    def preserve_strings(match):
+#        return match.group(0)
+    
+    # Replace strings temporarily with placeholders
+    placeholders = {}
+    string_pattern = r'((["\'])(?:(?=(\\?))\3.)*?\2)'
+    strings = re.findall(string_pattern, code)
+    for i, s in enumerate(strings):
+        placeholder = f'__STRING_{i}__'
+        code = code.replace(s[0], placeholder, 1)
+        placeholders[placeholder] = s[0]
+         
+    code = re.sub(r'//.*?(?=\n|$)', '', code)  # Single-line comments
+    code = re.sub(r'/\*[\s\S]*?\*/', '', code)  # Multi-line comments
+
+    if keep_newlines:
+      code = re.sub(r'[ \t]*([][=(){}|*:<>;,?/%&])'      , r'\1', code)#remove all spaces and tabs in front of special characters
+      code = re.sub(      r'([][=(){}|*:<>;,?/%&])[ \t]*', r'\1', code)#remove all spaces and tabs after special characters
+    else:
+      code = re.sub(r'\s*([][=(){}|*:<>;,?/%&])'      , r'\1', code)#remove all spaces and tabs in front of special characters
+      code = re.sub(      r'([][=(){}|*:<>;,?/%&])\s*', r'\1', code)#remove all spaces and tabs after special characters
+    code = re.sub(r'[ \t]*\n\s*', r'\n', code)#keep only one line break if there are more than one
+    code = re.sub(r'[ \t]+', ' ', code)# replace greater than one spaces with one space
+    
+    # Add back preserved strings
+    for placeholder, original in placeholders.items():
+        code = code.replace(placeholder, original, 1)
+    return code
+
 def minify_javascript(code,keep_newlines=False):
     # Remove all comments
     code = re.sub(r'//.*?(?=\n|$)', '', code)  # Single-line comments
@@ -73,16 +105,15 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
     else:
         iife_wrapper = f'\n(function(global) {{\n{content}\n}})(window);'
     if minify:
-        iife_wrapper = minify_javascript(iife_wrapper)
+        iife_wrapper = minify_javascript_(iife_wrapper)
     return iife_wrapper
 
-def gather_dependencies(module_path, processed_modules, dependencies, module_name=None, minify=False):
+def gather_dependencies(content, processed_modules, dependencies, module_dir=None, module_name=None, minify=False):
     if module_name and module_name in processed_modules:
         return ""
     
     # Process dependencies first
-    with open(module_path, 'r') as f:
-        content = f.read()
+
         # Convert the module itself 
     converted = convert_es6_to_iife(content, module_name, minify=minify)
     
@@ -92,8 +123,11 @@ def gather_dependencies(module_path, processed_modules, dependencies, module_nam
     for _, _, _, file_path in imports:
         dependency = os.path.splitext(os.path.basename(file_path))[0]
         dependencies[module_name].add(dependency)
-        full_path = os.path.join(os.path.dirname(module_path), file_path)
-        dependency_content += gather_dependencies(full_path, processed_modules, dependencies,module_name=dependency, minify=minify)
+        full_path = os.path.join(os.path.dirname(module_dir), file_path)
+        dependency_dir=os.path.dirname(full_path)
+        with open(full_path, 'r') as f:
+           content = f.read()
+        dependency_content += gather_dependencies(content, processed_modules, dependencies,module_dir=dependency_dir,module_name=dependency, minify=minify)
     if module_name:
       processed_modules.add(module_name)
     return dependency_content + converted
@@ -110,9 +144,13 @@ def process_html(html_path,minify=False):
             module_path = script.get('src',None)
             if module_path!=None:
                 full_path = os.path.join(os.path.dirname(html_path), module_path)
+                module_dir = os.path.dirname(full_path)
                 module_name = os.path.splitext(os.path.basename(full_path))[0]
                 # Gather all dependencies for this module
-                iife_content = gather_dependencies(full_path, processed_modules, dependencies, module_name=module_name,  minify=minify)
+                with open(full_path, 'r') as f:
+                    content = f.read()
+                iife_content = gather_dependencies(content, processed_modules, dependencies,  
+                module_dir=module_dir, module_name=module_name,  minify=minify)
                 del script['src']  # Remove the src attribute as we've included the content
                 script['type'] = 'text/javascript'  # Change type to standard JavaScript
                 # Insert the converted IIFE content for this module and its dependencies
@@ -124,10 +162,13 @@ def process_html(html_path,minify=False):
             script_path = script.get('src',None)
             if script_path:
                with open(os.path.join(os.path.dirname(html_path), script['src']), 'r') as f:
-                   script.string = f.read()
+                   script.string = minify_javascript_(f.read(),keep_newlines=False)
                del script['src']
             else:
-               pass
+              if script.get('id',None)=='main':
+                script.string=minify_javascript(script.string)
+              else:
+                script.string=minify_javascript_(script.string)
 
     with open('output.html', 'w') as file:
         file.write(str(soup))
