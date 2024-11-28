@@ -54,9 +54,10 @@ function debugLog(obj) {
 </script>
 
 <script>
+"use strict";
 const deg=Math.PI/180;
 const rad2deg=1/deg;
-var targetAngleRadians;
+let targetAngleRadians;
 let targetRadius=10;
 const target=[null,null,null];
 
@@ -93,6 +94,7 @@ link.href = window.URL.createObjectURL(blob);
 document.body.appendChild(link)
     </script>
 <script id="main" type="text/javascript">
+"use strict";
 let cookieCutterArea=2000;
 let outlines={
     "Duck": [
@@ -177,7 +179,7 @@ function drawSelectedOutline(e) {
 	ctx.scale(1,1);
 //	debugLog("target value= "+e.target.value);
 //	debugLog("outlines[e.target.value]= "+outlines[e.target.value]);
-    let key
+    let key;
 	try {
 		key=e.target.value;
 	} catch (e) {}

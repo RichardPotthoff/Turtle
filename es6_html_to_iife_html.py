@@ -3,37 +3,31 @@ import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
-def minify_javascript(code,keep_newlines=False):
-    # Preserve string literals
-#    def preserve_strings(match):
-#        return match.group(0)
-    # Replace strings temporarily with placeholders
-    placeholders = {}
-    string_pattern = r'((["\'])(?:(?=(\\?))\3.)*?\2)'
-    strings = re.findall(string_pattern, code)
-    for i, s in enumerate(strings):
-        placeholder = f'__STRING_{i}__'
-        code = code.replace(s[0], placeholder, 1)
-        placeholders[placeholder] = s[0]
-        
-    # Remove all comments    
-    code = re.sub(r'//.*?(?=\n|$)', '', code)  # Single-line comments
-    code = re.sub(r'/\*[\s\S]*?\*/', '', code)  # Multi-line comments
-    #remove unnecessary spaces around delimiters
-    delimiters='][=(){}|*:<>;,?/%&'
-    if keep_newlines:
-      code = re.sub(r'[ \t]*(['+delimiters+'])', r'\1', code)#remove all spaces and tabs in front of special characters
-      code = re.sub(r'(['+delimiters+'])[ \t]*', r'\1', code)#remove all spaces and tabs after special characters
-    else:
-      code = re.sub(r'\s*(['+delimiters+'])', r'\1', code)#remove all spaces and tabs in front of special characters
-      code = re.sub(r'(['+delimiters+'])\s*', r'\1', code)#remove all spaces and tabs after special characters
-    code = re.sub(r'[ \t]*\n\s*', r'\n', code)#keep only one line break if there are more than one
-    code = re.sub(r'[ \t]+', ' ', code)# replace greater than one spaces with one space
-    
-    # Add back preserved strings
-    for placeholder, original in placeholders.items():
-        code = code.replace(placeholder, original, 1)
-    return code
+
+def combined_sub(content,patterns):
+  combined_pattern ='|'.join(f'(?P<pattern{i}>'+pattern[0]+')' for i,pattern in enumerate(patterns))
+  cre=re.compile(combined_pattern,flags=re.MULTILINE)
+  def callback(match):
+    for key,group in match.groupdict().items():
+      if group and key.startswith('pattern'):
+        i=int(key[7:])
+        return patterns[i][1](match)
+  return cre.sub(callback,content)
+  
+string_pattern = r"'(?:[^'\\]|\\.)*'|" + r'"(?:[^"\\]|\\.)*"|'
+multiline_string_pattern = r'`(?:[^`\\]|\\.)*`'
+whitespace_around_delimiter =r'\s*(?P<delimiter>[][=(){}|:<>;,?%& \n\t]|/(?=[^/*])|(?<=[^/])\*)\s*'
+comment_pattern = r'//.*?(?:\n|$)'#include the trailing newline
+multiline_comment_pattern = r'/\*[\s\S]*?\*/'
+  
+minify_patterns=[(comment_pattern, lambda match:''),
+          (whitespace_around_delimiter, lambda match:match.group('delimiter')),
+          (string_pattern, lambda match:match.group()),
+          (multiline_string_pattern, lambda match:match.group()),
+          (multiline_comment_pattern, lambda match:''),
+          ]
+          
+minify_javascript=lambda code:combined_sub(code,minify_patterns)      
 
 
 def convert_es6_to_iife(content, module_name=None, minify=False):
@@ -44,8 +38,12 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
         result+= f'let {destructuring} = modules["{module_filename}"];\n'
       if import_name:
         result+= f'let {import_name} = modules["{module_filename}"];\n'
+      #
+      #default import may need to be added here
+      #
       return result
     import_pattern = r'^\s*(import\s+(?:(?:(?:(\w+)(?:[,]|\s)\s*)?(?:(\{[^}]*\}\s)|(?:\*\s+as\s+(\w+))\s)?)\s*from\s+)?[\'"]([^"\']+)[\'"]\s*;?)\s*$'
+    import_pattern = r'(?=^|;)\s*(import\s+(?:(?:(?:(\w+)(?:[,]|\s)\s*)?(?:(\{[^}]*\}\s)|(?:\*\s+as\s+(\w+))\s)?)\s*from\s+)?[\'"]([^"\']+)[\'"]\s*;?)\s*$'
     content='\n'+content
     imports_ = re.findall(import_pattern,content, re.MULTILINE)
     imports={}
@@ -77,12 +75,20 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
         iife_wrapper = minify_javascript(iife_wrapper)
     return iife_wrapper,imports
 
-def gather_dependencies(content, processed_modules, dependencies, module_dir=None, module_name=None, minify=False):
-    if module_name and module_name in processed_modules:
+def gather_dependencies(content, processed_modules, dependencies, in_process=None, module_dir=None, module_name=None, minify=False):
+    if in_process==None:
+      in_process=set()
+    if module_name:
+      if module_name in processed_modules:
+        if module_name in in_process:
+          print(f'Circular dependency detected: Module "{module_name}" is already being processed.')
         return ""
-    
-    # Process dependencies first
+      else:
+        in_process.add(module_name)
+        processed_modules.add(module_name)
 
+    # Process dependencies first
+    print(f'Processing module "{module_name if module_name else "html <script>"}"')
         # Convert the module itself 
     converted,imports = convert_es6_to_iife(content, module_name, minify=minify)
     dependency_content = ""
@@ -92,9 +98,9 @@ def gather_dependencies(content, processed_modules, dependencies, module_dir=Non
         imodule_dir=os.path.dirname(full_path)
         with open(full_path, 'r') as f:
            content = f.read()
-        dependency_content += gather_dependencies(content, processed_modules, dependencies,module_dir=imodule_dir,module_name=ifile_name, minify=minify)
+        dependency_content += gather_dependencies(content, processed_modules, dependencies,in_process,module_dir=imodule_dir,module_name=ifile_name, minify=minify)
     if module_name:
-      processed_modules.add(module_name)
+      in_process.remove(module_name)
     return dependency_content + converted
 
 def process_html(html_path,minify=False):
