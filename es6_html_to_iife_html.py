@@ -3,31 +3,42 @@ import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
-
-def combined_sub(content,patterns):
+def compile_combined_patterns(patterns):
   combined_pattern ='|'.join(f'(?P<pattern{i}>'+pattern[0]+')' for i,pattern in enumerate(patterns))
-  cre=re.compile(combined_pattern,flags=re.MULTILINE)
+  return (re.compile(combined_pattern,flags=re.MULTILINE),patterns)
+  
+def compiled_combined_sub(content,compiled_patterns):
+  compiled_re,patterns=compiled_patterns
   def callback(match):
     for key,group in match.groupdict().items():
       if group and key.startswith('pattern'):
         i=int(key[7:])
         return patterns[i][1](match)
-  return cre.sub(callback,content)
+  return compiled_re.sub(callback,content)
   
 string_pattern = r"'(?:[^'\\]|\\.)*'|" + r'"(?:[^"\\]|\\.)*"|'
+delimiters=r'][=(){}|:<>;,?%&\n\t'
+whitespaces_to_right_of_delimiter =r'(?<=['+delimiters+r'])\s*'
+whitespaces_to_left_of_delimiter =r'\s*(?=['+delimiters+r'])'
+multiple_whitespaces = '\s+'
 multiline_string_pattern = r'`(?:[^`\\]|\\.)*`'
-whitespace_around_delimiter =r'\s*(?P<delimiter>[][=(){}|:<>;,?%& \n\t]|/(?=[^/*])|(?<=[^/])\*)\s*'
+whitespace_around_delimiter =r'\s*(?P<delimiter>[][=+\-(){}|:<>;,?%& \n\t]|/(?=[^/*])|(?<=[^/])\*)\s*'
 comment_pattern = r'//.*?(?:\n|$)'#include the trailing newline
 multiline_comment_pattern = r'/\*[\s\S]*?\*/'
   
 minify_patterns=[(comment_pattern, lambda match:''),
-          (whitespace_around_delimiter, lambda match:match.group('delimiter')),
+#          (whitespace_around_delimiter, lambda match:match.group('delimiter')),     
+          (whitespaces_to_right_of_delimiter,lambda match:''),
+          (whitespaces_to_left_of_delimiter,lambda match:''),
+          (multiple_whitespaces,lambda match:' '),
           (string_pattern, lambda match:match.group()),
           (multiline_string_pattern, lambda match:match.group()),
           (multiline_comment_pattern, lambda match:''),
           ]
           
-minify_javascript=lambda code:combined_sub(code,minify_patterns)      
+compiled_minify_patterns=compile_combined_patterns(minify_patterns)
+
+minify_javascript=lambda code:compiled_combined_sub(code,compiled_minify_patterns)      
 
 
 def convert_es6_to_iife(content, module_name=None, minify=False):
@@ -148,6 +159,8 @@ def process_html(html_path,minify=False):
         file.write(str(soup))
 
 if __name__ == "__main__":
+    from time import perf_counter
+    t1=perf_counter()
     os.chdir('../widgets')
     html_file = "index.html"
     process_html(html_file,minify=True)
@@ -160,4 +173,5 @@ if __name__ == "__main__":
     html_file = "index.html"
     process_html(html_file,minify=True)
     print("HTML processing completed with modules converted to IIFE.")
-
+    t2=perf_counter()
+    print(f'{t2-t1=}')
