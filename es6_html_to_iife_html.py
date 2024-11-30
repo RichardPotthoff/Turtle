@@ -68,12 +68,12 @@ def convert_es6_to_iife(content, module_name=None, minify=False):
                 convert_import_to_let(file_name, imodule_name, destructuring)+r'\n', content, count=1, flags=re.MULTILINE)
                 
     # Handle exports - assuming all exports are at the module level
-    export_pattern = r'^export\s+(?:function|const)\s+(\w+)(.*)$'
+    export_pattern = r'^export\s+(function|const)\s+(\w+)(.*)$'
     exports = re.findall(export_pattern, content, re.MULTILINE)
     export_object = '{\n'
-    for name, function_body in exports:
+    for export_type, name, function_body in exports:
         # Remove 'export' from the function declaration
-        content = re.sub(export_pattern, f'function {name}{function_body}', content, count=1, flags=re.MULTILINE)
+        content = re.sub(export_pattern, f'{export_type} {name}{function_body}', content, count=1, flags=re.MULTILINE)
         export_object += f'  {name}: {name},\n'
     export_object += '}'
 
