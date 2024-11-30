@@ -11,18 +11,7 @@
         border: 1px solid black;
     }
     </style>
-<script type="module" defer> 
-	import {setupUI,updateUI,setupSlider,makeSlider,makeCheckbox} from "./webgl_lessons_ui.module.js"
-	
-    window.webglLessonsUI={
-    setupUI: setupUI,
-    updateUI: updateUI,
-    setupSlider: setupSlider,
-    makeSlider: makeSlider,
-    makeCheckbox: makeCheckbox,
-  };
-  console.log(Object.keys(webglLessonsUI));
-</script>
+
 <script>
 function debugLog(obj) {
     const logElement = document.getElementById('debugLogText');
@@ -39,12 +28,9 @@ function debugLog(obj) {
 </div>
 <input type="file" id="file-input" />
 <select name="outline-selector" id="outline-selector"></select>
-<button id='downloadBtn'>Download</button>
-<a href="/Turtle/output.html" download="Turtle.html" >Download Turtle.html</a>
+<button id='downloadBtn'>Download Outlines</button>
+<button id='downloadAppBtn'>Download App</button>
 
-
-<h3>Contents of the file:</h3>
-<pre id="file-content"></pre>
 <script type="module">
 	import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle.js';
 	import {stringifyFormatted} from './json_utils.js';
@@ -52,29 +38,14 @@ function debugLog(obj) {
 	window.SegmentsLengthArea=SegmentsLengthArea;
 	window.TurtlePathLengthArea=TurtlePathLengthArea;
 	window.stringifyFormatted=stringifyFormatted;
-	console.log("in Module1");
 </script>
 
 <script>
 "use strict";
 const deg=Math.PI/180;
 const rad2deg=1/deg;
-let targetAngleRadians;
-let targetRadius=10;
-const target=[null,null,null];
-
-function updateTargetAngle(event, ui) {
-    targetAngleRadians = ui.value*deg;
-    target[0] = Math.sin(targetAngleRadians) * targetRadius;
-    target[2] = Math.cos(targetAngleRadians) * targetRadius;
-//    drawScene();
-  }
-
 </script>
-<script type="module">
-webglLessonsUI.setupSlider("#targetAngle", {value: targetAngleRadians*rad2deg, slide: updateTargetAngle, min: -360, max: 360});
 
-</script>
 <script>
 function formatFloat(num, decimalPlaces) {
   return num.toFixed(decimalPlaces);
@@ -83,23 +54,13 @@ function formatFloat(num, decimalPlaces) {
 function deepCopyArray(arr) {
     return arr.map(item => Array.isArray(item) ? deepCopyArray(item) : item);
 }
-
-// Initialization code
-
-var filename = "readme.txt";
-var text = "Text of the file goes here.";
-var blob = new Blob([text], {type:'text/gcode'});
-var link = document.createElement("a");
-link.download = filename;
-link.innerHTML = "Download File";
-link.href = window.URL.createObjectURL(blob);
-document.body.appendChild(link)
     </script>
 <script id="main" type="text/javascript">
 "use strict";
 let cookieCutterArea=2000;
 let outlines={
-    "Duck": [
+    "Duck":{
+	   "turtlePath": [
       [ 0.4, -10.0 ],
       [ 13.297, 25.0 ],
       [ 3, -80.0 ],
@@ -113,7 +74,7 @@ let outlines={
       [ 3, -90.0 ],
       [ 15, 220.0 ],
       [ 5, -125.0 ]
-    ]
+    ]}
     };
 let  brickworks={
     "centered": [
@@ -143,7 +104,7 @@ let  brickworks={
 function updateOutlineSelector(){
 	while(outlineSelector.options.length) outlineSelector.options.remove(0);
 	Object.entries(outlines).forEach(([k2,v2]) => {
-			v2.forEach((x)=>{x[1]*=deg;});
+			v2["turtlePath"].forEach((x)=>{x[1]*=deg;});
 			var el = document.createElement("option");
 			el.textContent=k2;
 			el.value=k2;
@@ -190,20 +151,21 @@ function drawSelectedOutline(e) {
 		key=e.target.value;
 	} catch (e) {}
 	if (key===undefined) key="Duck";
-	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]);
+	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);
 	let scale=Math.sqrt(cookieCutterArea/a);
 	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
 	let a0=[1,0];
 	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];
-    plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,scale:scale*5});
-	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:3,scale:scale*5});
-//	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:-3,scale:scale*5});
+    plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale*5});
+	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});
+//	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:-3,scale:scale*5});
 }
 
 document.getElementById('file-input')
   .addEventListener('change', readSingleFile, false);
 
 var outlineSelector;
+
 function initDocument(){
 	outlineSelector=document.getElementById('outline-selector');
 	outlineSelector.addEventListener('change', drawSelectedOutline, false);
@@ -216,29 +178,40 @@ document.getElementById('downloadBtn').addEventListener('click', function() {
     if (outlines && brickworks) {
 		const outlinesCopy={};
 	    for (let key in outlines){
-		    let valueArrayCopy=[... outlines[key]];
-		    outlinesCopy[key]=valueArrayCopy;
+			  let outline={};
+			  outlinesCopy[key]=outline;
+		    let valueArrayCopy=[... outlines[key]["turtlePath"]];
+		    outlinesCopy[key]["turtlePath"]=valueArrayCopy;
 		    valueArrayCopy.forEach(([l,angRad],i,arr) => {
 			    arr[i]=[l,Math.round(angRad*rad2deg*1000)/1000];
 			});		    
 		};
-		const content=stringifyFormatted({outlines:outlinesCopy,brickworks:brickworks}, 2,3);
-	    const blob = new Blob([content], { type:'application/octet-stream'});
+		const content='{\n"outlines":'+stringifyFormatted(outlinesCopy,2,3)+', \n"brickworks":'+
+		      stringifyFormatted(brickworks, 2,2)+"\n}";
+	    const blob = new Blob([content], { type:'text/json'});
 	    const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-   //     link.download = 'cookie-cutters_downloaded.json';
+        link.download = 'cookie-cutters_downloaded.json';
         link.click();
 
         // Clean up to avoid memory leaks
         URL.revokeObjectURL(link.href);
         // Disable the button after download
-        this.disabled = true;
+//        this.disabled = true;
     }
 });
-//debugLog(outlineSelector);
 
+document.getElementById('downloadAppBtn').addEventListener('click', function() {
+	const link = document.createElement('a');
+        link.href = "/Turtle/output.html";
+        link.download = "Turtle.html";
+        link.click();
+    
+});
+//debugLog(outlineSelector);
 document.addEventListener("DOMContentLoaded", initDocument);
 </script>
-<div id="targetAngle" class="slider"></div> 
+<br/>
+<a href="/Turtle/output.html" download="Turtle.html" >Download Turtle.html</a>
 </body>
 </html>
