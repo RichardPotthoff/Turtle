@@ -140,22 +140,21 @@ function* Segments2Complex({ p0_a0_segs = [[[0, 0], [1, 0]], []], scale = 1.0, t
                     l = r * da;
                     let dl = 2 * Math.sqrt(2 * Math.abs(r) * tol);
                     n = Math.max(Math.ceil(6 * Math.abs(da / (2 * Math.PI))), Math.floor(l / dl) + 1);
-                    dda = [Math.cos(da / n), Math.sin(da / n)];
                     let dda2 = [Math.cos(0.5*da / n), Math.sin(0.5*da / n)];
                     v = [2 * r* dda2[1] * dda2[0], 2 * r* dda2[1] * dda2[1]];
                     v = [v[0] * a[0] - v[1] * a[1], v[0] * a[1] + v[1] * a[0]];
                 } else {
                     n = 1;
-                    dda = [1, 0];
-                    v = [l * a[0], l * a[1]];
+                    v = [0,0];
                 }
+				dda = [Math.cos(da / n), Math.sin(da / n)];
                 for (let i = 0; i < n; i++) {
                     L += l / n;
                     p[0] += v[0];
                     p[1] += v[1];
+					a = [a[0] * dda[0] - a[1] * dda[1], a[0] * dda[1] + a[1] * dda[0]];
                     yield { point: p.slice(), angle: a, length: L, segmentIndex: X };
                     v = [v[0] * dda[0] - v[1] * dda[1], v[0] * dda[1] + v[1] * dda[0]];
-                    a = [a[0] * dda[0] - a[1] * dda[1], a[0] * dda[1] + a[1] * dda[0]];
                 }
             } else {
                 n = 1; // Set n to 1 for the zero case
