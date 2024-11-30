@@ -39,7 +39,7 @@ function debugLog(obj) {
 </div>
 <input type="file" id="file-input" />
 <select name="outline-selector" id="outline-selector"></select>
-
+<button id='downloadBtn'>Download</button>
 
 <h3>Contents of the file:</h3>
 <pre id="file-content"></pre>
@@ -146,7 +146,9 @@ function updateOutlineSelector(){
 			el.textContent=k2;
 			el.value=k2;
 			outlineSelector.appendChild(el);
-    });
+		});
+    const event = new Event ( 'change', { bubbles: true });
+	outlineSelector.dispatchEvent(event);
 };
 
 function readSingleFile(e) {
@@ -160,7 +162,9 @@ function readSingleFile(e) {
 	let decodedContents=JSON.parse(contents);//jsyaml.load(contents);
 	outlines=decodedContents["outlines"];
 	updateOutlineSelector();
+	
 	brickworks=decodedContents["brickworks"];
+	document.getElementById('downloadBtn').disabled=false;
 };
   reader.readAsText(file);
 }
@@ -191,7 +195,7 @@ function drawSelectedOutline(e) {
 	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];
     plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,scale:scale*5});
 	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:3,scale:scale*5});
-	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:-3,scale:scale*5});
+//	plot_segments(ctx,{segs:outlines[key],p0:p0,a0:a0,offs:-3,scale:scale*5});
 }
 
 document.getElementById('file-input')
@@ -205,6 +209,30 @@ function initDocument(){
 	drawSelectedOutline();
 }
 
+// Event listener for the download button
+document.getElementById('downloadBtn').addEventListener('click', function() {
+    if (outlines && brickworks) {
+		const outlinesCopy={};
+	    for (let key in outlines){
+		    let valueArrayCopy=[... outlines[key]];
+		    outlinesCopy[key]=valueArrayCopy;
+		    valueArrayCopy.forEach(([l,angRad],i,arr) => {
+			    arr[i]=[l,Math.round(angRad*rad2deg*1000)/1000];
+			});		    
+		};
+		const content=stringifyFormatted({outlines:outlinesCopy,brickworks:brickworks}, 2,3);
+	    const blob = new Blob([content], { type:'application/octet-stream'});
+	    const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+   //     link.download = 'cookie-cutters_downloaded.json';
+        link.click();
+
+        // Clean up to avoid memory leaks
+        URL.revokeObjectURL(link.href);
+        // Disable the button after download
+        this.disabled = true;
+    }
+});
 //debugLog(outlineSelector);
 
 document.addEventListener("DOMContentLoaded", initDocument);
