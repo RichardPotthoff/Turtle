@@ -110,5 +110,41 @@ document.getElementById('downloadAppBtn').addEventListener('click', function() {
         link.click();
     
 });
+
 //debugLog(outlineSelector);
 document.addEventListener("DOMContentLoaded", initDocument);
+
+import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button} from './HTML-widgets.js';
+function createTabbedInterface() {
+    let mainContainer = document.getElementById('tabsContainer');
+    window.output1=OutputText();
+	window.canvas1=Canvas();
+    let tabs = Tab([
+        {
+            title: 'Design',
+            content: VBox([
+                HBox([
+                    FloatSlider({ min: 0, max: 10, value: 5, orientation: 'vertical' }),
+                    Button('Download G-Code', () => console.log('G-Code download initiated'))
+                ]),
+                // Add more design elements
+            ])
+        },
+        {
+            title: 'Preview',
+            content: canvas1//document.createElement('div') // Placeholder for preview content
+        },
+        {
+            title: 'G-Code',
+            content: output1 // Placeholder for G-Code content
+        }
+    ]);
+
+    mainContainer.appendChild(tabs);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+	createTabbedInterface();
+	output1.appendText("This is some output text.");
+	canvas1.onDraw();
+});

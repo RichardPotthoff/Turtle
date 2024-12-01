@@ -65,6 +65,7 @@ export function TurtlePathLengthArea(TurtlePath) {
     const centroid = [firstMoment[0] / totalArea, firstMoment[1] / totalArea];
     return [totalLength, totalArea, arcStartPoint, arcEndAngle, centroid];
 }
+//
 
 export function SegmentsLengthArea(Segs) {
     let l = 0; // Total length
