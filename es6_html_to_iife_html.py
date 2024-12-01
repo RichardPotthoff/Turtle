@@ -3,12 +3,12 @@ import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
 
-def compile_combined_patterns(patterns):
+def combine_patterns(*patterns):
   combined_pattern ='|'.join(f'(?P<pattern{i}>'+pattern[0]+')' for i,pattern in enumerate(patterns))
   return (re.compile(combined_pattern,flags=re.MULTILINE),patterns)
   
-def compiled_combined_sub(content,compiled_patterns):
-  compiled_re,patterns=compiled_patterns
+def combined_re_sub(content,combined_patterns):
+  compiled_re,patterns=combined_patterns
   def callback(match):
     for key,group in match.groupdict().items():
       if group and key.startswith('pattern'):
@@ -16,6 +16,7 @@ def compiled_combined_sub(content,compiled_patterns):
         return patterns[i][1](match)
   return compiled_re.sub(callback,content)
   
+#regexes for common javascript patterns:
 string_pattern = r"'(?:[^'\\]|\\.)*'|" + r'"(?:[^"\\]|\\.)*"|'
 multiline_string_pattern = r'`(?:[^`\\]|\\.)*`'
 comment_pattern = r'//.*?(?:\n|$)'#include the trailing newline
@@ -26,20 +27,18 @@ whitespaces_to_left_of_delimiter =r'\s*(?=['+delimiters+r'])'
 whitespaces_containing_newline=r'\s*\n\s*'
 two_or_more_whitespaces = r'\s\s+'
   
-minify_patterns=[
-    (string_pattern, lambda match:match.group()), #detect strings, and put them back
-    (multiline_string_pattern, lambda match:match.group()), #detect strings and put them back
-    (multiline_comment_pattern, lambda match:''), #remove all comments
-    (comment_pattern, lambda match:''), #remove all comments
-    (whitespaces_to_right_of_delimiter,lambda match:''), #delete whitespaces if there is a delimiter to the left
-    (whitespaces_to_left_of_delimiter,lambda match:''), #delete whitespaces if there is a delimiter to the right
-    (whitespaces_containing_newline,lambda match:'\n'), #replace whitspaces with a newline in it with a single newline
-    (two_or_more_whitespaces,lambda match:' '), #replace span of >=2 whitspaces with single whitespace
-    ]
-          
-compiled_minify_patterns=compile_combined_patterns(minify_patterns)
+combined_minify_patterns=combine_patterns(
+    (string_pattern, lambda match:match.group()),           #detect strings, and put them back unminified
+    (multiline_string_pattern, lambda match:match.group()), #detect strings, and put them back unminified
+    (multiline_comment_pattern, lambda match:''),           #remove all comments 
+    (comment_pattern, lambda match:''),                     #remove all comments
+    (whitespaces_to_right_of_delimiter,lambda match:''),    #delete whitespaces if there is a delimiter to the left
+    (whitespaces_to_left_of_delimiter,lambda match:''),     #delete whitespaces if there is a delimiter to the right
+    (whitespaces_containing_newline,lambda match:'\n'),     #replace newline+whitespaces with a single newline
+    (two_or_more_whitespaces,lambda match:' '),             #replace span of >=2 whitspaces with single whitespace
+    )
 
-minify_javascript=lambda code:compiled_combined_sub(code,compiled_minify_patterns)      
+minify_javascript=lambda code:combined_re_sub(code,combined_minify_patterns)      
 
 
 def convert_es6_to_iife(content, module_filename=None, minify=False):
@@ -48,16 +47,16 @@ def convert_es6_to_iife(content, module_filename=None, minify=False):
   
   def import_callback(match):
       groupdict=match.groupdict()
-      default_import=groupdict['default_import']
+      default_import=groupdict['default_import'] # these are the named groups in the regular expression
       destructuring=groupdict['destructuring']
       module_alias=groupdict['module_alias']
-      module_path=groupdict['module_path']
-      module_filename=os.path.basename(module_path).strip()
+      module_path=groupdict['module_path'].strip()
+      module_filename=os.path.basename(module_path)
       imports[module_filename]=module_path
       result=[]
       if destructuring:
-        destructuring=re.sub(r'(\w+)\s*as\s*(\w+)',r'\1 : \2',destructuring.strip('; '))
-        result.append(f'let {destructuring} = modules["{module_filename}"];')
+        destructuring=re.sub(r'(\w+)\s*as\s*(\w+)',r'\1 : \2',destructuring.strip()) #replace 'as' with ':'
+        result.append(f'let {destructuring.strip()} = modules["{module_filename}"];')
       if module_alias:result.append(f'let {module_alias.strip()} = modules["{module_filename}"];')
       if default_import:result.append(f'let {default_import.strip()} = modules["{module_filename}"].default;')
       return '\n'.join(result)
@@ -74,16 +73,22 @@ def convert_es6_to_iife(content, module_filename=None, minify=False):
         exports['default']=export_name
       return export_type+' '+export_name #remove the 'export' and 'default' keywords
       
-  es6_to_iife_patterns=[
-      (string_pattern, lambda match:match.group()), #detect strings, and put them back
-      (multiline_string_pattern, lambda match:match.group()), #detect strings and put them back
-      (multiline_comment_pattern, (lambda match:'') if minify else (lambda match:match.group())), #remove comments only if minify
+  # here we arse parsing for import and export patterns.
+  # strings and comment patterns are detected simultaneously, thus preventing the detection of 
+  # import/export patterns inside of strings and comments
+  combined_es6_to_iife_patterns=combine_patterns(
+      (string_pattern, lambda match:match.group()), #detect strings, and put them back unchanged
+      (multiline_string_pattern, lambda match:match.group()),    #       
       (comment_pattern, (lambda match:'') if minify else (lambda match:match.group())), #remove comments only if minify
+      (multiline_comment_pattern, (lambda match:'') if minify else (lambda match:match.group())), #
       (import_pattern,import_callback),#parse import statements, and replace them with equivalent let statements
       (export_pattern,export_callback),#parse export statements, collect export names, remove 'export [default]'
-      ]
-    
-  content=compiled_combined_sub(content,compile_combined_patterns(es6_to_iife_patterns))
+      )
+  
+  #the next line does all the work: the souce code is modified by the callback functions, and the
+  #filenames and pathnames of the imported modules the and names of the exported symbols are collected 
+  #in the 'imports' and 'exports' dictionaries. 
+  content=combined_re_sub(content,combined_es6_to_iife_patterns)
   
   if exports:  # Only add the export object if there are exports
       iife_wrapper = f'\n(function(global) {{\n{content}\nif(!("modules" in global)){{\n global["modules"]={{}}\n}}\nglobal.modules["{module_filename}"] = {{{",".join(str(key)+":"+str(value) for key,value in exports.items())}}} ;\n}})(window);'
