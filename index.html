@@ -16,11 +16,16 @@
         .hbox { flex-direction: row; }
         .vbox { flex-direction: column; }
         .slider { width: 200px; height: 200px; } /* For vertical sliders */
+		
 		.tab-widget {
-            width: 100%;
+		    width: 100vw;
+		    height: 100vh;
+		    display: flex;
+		    flex-direction: column;
 		}
 		
 		.tab-headers {
+			flex-shrink: 0;
 		    display: flex;
 		    border-bottom: 1px solid #ccc;
 		}
@@ -40,12 +45,16 @@
 		}
 		
 		.tab-content {
+			flex-grow: 1;
+            overflow: hidden;
 		    padding: 0px;
 		}
 		
 		.tab-pane {
 			padding: 10px;
 			border: 1px solid #999;
+			height: 100%;
+            overflow-y: auto;
 		    display: none; /* Hidden by default */
 		    animation: fadeEffect 1s; /* Fading effect */
 		}
@@ -62,19 +71,16 @@
 
 <script>
 function debugLog(obj) {
-    const logElement = document.getElementById('debugLogText');
-    logElement.innerHTML +=  JSON.stringify(obj)+ '<br>';
-    logElement.scrollTop = logElement.scrollHeight; // Auto scroll to bottom
+	console.log(obj);
+    if (window.logElement){
+    window.logElement.appendText(JSON.stringify(obj));
+}
 };
 </script>
 </head>
 <body>
 	<div id="tabsContainer"></div>
-<div>
-    <canvas id="arcCanvas" width="500" height="500"></canvas>
-  <!-- Add this to your HTML body -->
-<div id="debugLogText" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; overflow-y: scroll; background: white; color: black;"></div>
-</div>
+
 <input type="file" id="file-input" />
 <select name="outline-selector" id="outline-selector"></select>
 <button id='downloadBtn'>Download Outlines</button>

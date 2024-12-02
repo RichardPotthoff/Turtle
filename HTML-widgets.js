@@ -14,6 +14,47 @@ export function VBox(children, options = {}) {
     return div;
 }
 
+export function Grid(children, options = {}) {
+    let div = document.createElement('div');
+    div.className = 'grid-container';
+    
+    // Apply styles for responsive layout
+    Object.assign(div.style, {
+        display: 'grid',
+        width: '100vw',
+        height: '100vh',
+        gridGap: '10px'
+    });
+
+    // Initial setup for layout based on aspect ratio
+    function adjustLayout() {
+        const aspectRatio = window.innerWidth / window.innerHeight;
+        if (aspectRatio > 1) { // Landscape
+            div.style.gridTemplateColumns = options.controlsRight ? '1fr auto' : 'auto 1fr';
+            div.style.gridTemplateAreas = options.controlsRight ? "'canvas controls'" : "'controls canvas'";
+            div.style.gridTemplateRows = '1fr';
+        } else { // Portrait
+            div.style.gridTemplateColumns = '1fr';
+            div.style.gridTemplateRows = '1fr auto';
+            div.style.gridTemplateAreas = "'canvas' 'controls'";
+        }
+    }
+
+    // Listen for window resize events
+    window.addEventListener('resize', adjustLayout);
+    adjustLayout(); // Call once to set initial layout
+
+    // Appending children with their grid areas
+    children.forEach((child, index) => {
+        let childDiv = document.createElement('div');
+        childDiv.appendChild(child);
+        childDiv.style.gridArea = index === 0 ? 'canvas' : 'controls';
+        div.appendChild(childDiv);
+    });
+
+    return div;
+}
+
 export function FloatSlider(options = {}) {
     let input = document.createElement('input');
     input.type = 'range';
@@ -42,48 +83,56 @@ export function Tab(panes, options = {}) {
     let tabContainer = document.createElement('div');
     tabContainer.className = 'tab-widget';
     
-    // Create tab headers
     let tabHeaders = document.createElement('div');
     tabHeaders.className = 'tab-headers';
     tabContainer.appendChild(tabHeaders);
 
-    // Create content panes
     let paneContainer = document.createElement('div');
     paneContainer.className = 'tab-content';
     tabContainer.appendChild(paneContainer);
 
     panes.forEach((pane, index) => {
-        // Create header
         let header = document.createElement('button');
         header.className = 'tab-header';
         header.textContent = pane.title;
         header.addEventListener('click', () => showTab(index));
         tabHeaders.appendChild(header);
 
-        // Create content
         let content = document.createElement('div');
         content.className = 'tab-pane';
-        content.style.display = index === 0 ? 'block' : 'none'; // Show first tab by default
+        content.style.display = index === 0 ? 'block' : 'none'; 
         content.appendChild(pane.content);
         paneContainer.appendChild(content);
     });
 
     function showTab(index) {
-		if (index<0 || index >= paneContainer.length){
-		    console.error('Tab index out of range!');
-			return;
-		}
         Array.from(paneContainer.children).forEach((pane, i) => {
-            pane.style.display = i === index ? 'block' : 'none';
+            pane.style.display = i === index ? 'flex' : 'none'; // Changed to 'flex' for consistent sizing
         });
-        // Optionally, modify CSS for active tab header
         Array.from(tabHeaders.children).forEach((header, i) => {
             header.classList.toggle('active', i === index);
         });
     }
-    tabContainer.showTab=showTab;
+
+    tabContainer.showTab = showTab;
+
+    if (options.initialTab !== undefined && options.initialTab >= 0 && options.initialTab < panes.length) {
+        showTab(options.initialTab);
+    }
+
+    // Listen for window resize events to adjust layout
+    window.addEventListener('resize', adjustLayout);
+    adjustLayout(); // Initial adjustment
+
     return tabContainer;
+
+    function adjustLayout() {
+        // This function can be expanded if you need more dynamic behavior
+        tabContainer.style.height = window.innerHeight + 'px'; // Ensure full height
+        tabContainer.style.width = window.innerWidth + 'px'; // Ensure full width
+    }
 }
+
 
 export function Canvas(options = {}) {
     let canvas = document.createElement('canvas');
@@ -108,16 +157,23 @@ export function OutputText(options = {}) {
     let div = document.createElement('div');
     div.className = 'output-text';
     
+    div.style.overflowY = 'auto'; // Make it scrollable vertically
+    div.style.maxHeight = options.maxHeight || '200px'; // Default max height
+    
+    // Limit the number of lines
     div.appendText = function(text) {
         let p = document.createElement('p');
         p.textContent = text;
         div.appendChild(p);
+        
+        if (div.children.length > (options.maxLines || 500)) {
+            // Remove the first child if we exceed the line limit
+            div.removeChild(div.firstChild);
+        }
         // Scroll to the bottom if content overflows
         div.scrollTop = div.scrollHeight;
     };
     
     return div;
 }
-
-
 // Example for creating and appending elements
