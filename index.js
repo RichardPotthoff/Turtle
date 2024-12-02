@@ -1,6 +1,7 @@
 	
 import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle.js';
 import {cookiecutters} from './outline-data.js';
+import {stringifyFormatted} from "./json_utils.js";
 let {outlines, brickworks}=JSON.parse(JSON.stringify(cookiecutters));
 let cookieCutterArea=2000;
 
@@ -77,7 +78,8 @@ function initDocument(){
 }
 
 // Event listener for the download button
-document.getElementById('downloadBtn').addEventListener('click', function() {
+function downloadOutlines() {
+	console.log("Downloading Outlines")
     if (outlines && brickworks) {
 		const outlinesCopy={};
 	    for (let key in outlines){
@@ -102,7 +104,7 @@ document.getElementById('downloadBtn').addEventListener('click', function() {
         // Disable the button after download
 //        this.disabled = true;
     }
-});
+};
 
 document.getElementById('downloadAppBtn').addEventListener('click', function() {
 	const link = document.createElement('a');
@@ -115,25 +117,27 @@ document.getElementById('downloadAppBtn').addEventListener('click', function() {
 //debugLog(outlineSelector);
 //document.addEventListener("DOMContentLoaded", initDocument);
 
-import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid} from './HTML-widgets.js';
+import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid,FileInput} from './HTML-widgets.js';
 function createTabbedInterface() {
     let mainContainer = document.getElementById('tabsContainer');
     window.logElement=OutputText();
 	window.canvas1=Canvas({width:400,height:400} );
+	window.downloadBtn=Button('Download Outlines',downloadOutlines);
+    window.uploadOutlinesFile=FileInput({accept:'*.json', onChange:readSingleFile});
     let tabs = Tab([
         {
             title: 'Design',
             content: VBox([
                 HBox([
                     FloatSlider({ min: 0, max: 10, value: 5, orientation: 'vertical' }),
-                    Button('Download G-Code', () => console.log('G-Code download initiated'))
+					Button('Download G-Code', () => console.log('G-Code download initiated'))
                 ]),
                 // Add more design elements
             ])
         },
         {
             title: 'Preview',
-            content: Grid([canvas1,Button('Download G-Code', () => console.log('G-Code download initiated'))])//document.createElement('div') // Placeholder for preview content
+            content: Grid([canvas1,VBox([downloadBtn,uploadOutlinesFile])])//document.createElement('div') // Placeholder for preview content
         },
         {
             title: 'log',

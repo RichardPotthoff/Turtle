@@ -79,6 +79,49 @@ export function Button(description, onClick) {
     return button;
 }
 
+export function FileInput({accept = '*', multiple = false, onChange} = {}) {
+    // Create the container for our custom file input
+    let fileInputContainer = document.createElement('div');
+    fileInputContainer.className = 'custom-file-input';
+
+    // Hidden actual file input
+    let fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = accept;
+    fileInput.multiple = multiple;  // Set to true or false based on parameter
+    fileInput.style.display = 'none';  // Hide the actual input
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Custom button for file selection
+    let fileButton = document.createElement('button');
+    fileButton.textContent = multiple ? 'Choose Files' : 'Choose File';
+    fileButton.addEventListener('click', () => fileInput.click());
+
+    // Display for file names
+    let fileDisplay = document.createElement('span');
+    fileDisplay.textContent = 'No file chosen';
+    fileDisplay.style.marginLeft = '10px';
+
+    // Function to handle file selection
+    function handleFileSelect(event) {
+        let selectedFiles = event.target.files;
+        if (selectedFiles.length === 1) {
+            fileDisplay.textContent = selectedFiles[0].name;
+        } else if (selectedFiles.length > 1) {
+            fileDisplay.textContent = `${selectedFiles.length} files selected`;
+        } else {
+            fileDisplay.textContent = 'No file chosen';
+        }
+        if (onChange) onChange(selectedFiles); // Pass the files to onChange if provided
+    }
+
+    // Assemble the components
+    fileInputContainer.appendChild(fileButton);
+    fileInputContainer.appendChild(fileDisplay);
+    fileInputContainer.appendChild(fileInput);
+
+    return fileInputContainer;
+}
 export function Tab(panes, options = {}) {
     let tabContainer = document.createElement('div');
     tabContainer.className = 'tab-widget';
