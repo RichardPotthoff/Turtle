@@ -69,6 +69,10 @@ export function Tab(panes, options = {}) {
     });
 
     function showTab(index) {
+		if (index<0 || index >= paneContainer.length){
+		    console.error('Tab index out of range!');
+			return;
+		}
         Array.from(paneContainer.children).forEach((pane, i) => {
             pane.style.display = i === index ? 'block' : 'none';
         });
@@ -77,7 +81,7 @@ export function Tab(panes, options = {}) {
             header.classList.toggle('active', i === index);
         });
     }
-
+    tabContainer.showTab=showTab;
     return tabContainer;
 }
 

@@ -41,7 +41,8 @@ function displayContents(contents) {
 }
 
 function drawSelectedOutline(e) {
-	const canvas = document.getElementById('arcCanvas');
+//	const canvas = document.getElementById('canvas1');
+    const canvas = canvas1
     const ctx = canvas.getContext('2d');
 	ctx.reset();
 	ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -112,13 +113,13 @@ document.getElementById('downloadAppBtn').addEventListener('click', function() {
 });
 
 //debugLog(outlineSelector);
-document.addEventListener("DOMContentLoaded", initDocument);
+//document.addEventListener("DOMContentLoaded", initDocument);
 
 import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button} from './HTML-widgets.js';
 function createTabbedInterface() {
     let mainContainer = document.getElementById('tabsContainer');
     window.output1=OutputText();
-	window.canvas1=Canvas();
+	window.canvas1=Canvas({width:400,height:400} );
     let tabs = Tab([
         {
             title: 'Design',
@@ -139,12 +140,14 @@ function createTabbedInterface() {
             content: output1 // Placeholder for G-Code content
         }
     ]);
-
+    window.tabs=tabs;
     mainContainer.appendChild(tabs);
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
 	createTabbedInterface();
+	tabs.showTab(1);
 	output1.appendText("This is some output text.");
-	canvas1.onDraw();
+	canvas1.onDraw()
+	initDocument();
 });
