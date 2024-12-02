@@ -21,7 +21,7 @@ string_pattern = r"'(?:[^'\\]|\\.)*'|" + r'"(?:[^"\\]|\\.)*"|'
 multiline_string_pattern = r'`(?:[^`\\]|\\.)*`'
 comment_pattern = r'//.*?(?:\n|$)'#include the trailing newline
 multiline_comment_pattern = r'/\*[\s\S]*?\*/'
-delimiters=r'][=(){}:<>;,?%&|*+-/'
+delimiters=r'[=({:<>;,?%&|*+-/' #removing ]}) because of problems with asi not inserting semicolons if there is a \n
 whitespaces_to_right_of_delimiter =r'(?<=['+delimiters+r'])\s*'
 whitespaces_to_left_of_delimiter =r'\s*(?=['+delimiters+r'])'
 whitespaces_containing_newline=r'\s*\n\s*'
