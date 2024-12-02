@@ -58,16 +58,76 @@
 		    display: none; /* Hidden by default */
 		    animation: fadeEffect 1s; /* Fading effect */
 		}
-		
-		@keyframes fadeEffect {
-		    from {opacity: 0;}
-		    to {opacity: 1;}
+		.custom-file-input {
+		    display: flex;
+		    align-items: center;
 		}
-		#myCanvas {
-            touch-action: none; /* Prevents default touch behaviors like scrolling */
-        }
+		
+		.custom-file-input button {
+		    /* Style your button here */
+		    background-color: #f1f1f1;
+		    border: 1px solid #ddd;
+		    padding: 5px 10px;
+		    cursor: pointer;
+		}
+		
+		.custom-file-input span {
+		    font-style: italic;
+		    color: #777;
+		}
+		.custom-dropdown {
+    position: relative;
+    display: inline-block;
+}
 
-    </style>
+.dropdown-button {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    padding: 10px 20px;
+    cursor: pointer;
+    width: 200px;
+    text-align: left;
+}
+
+.dropdown-button::after {
+    content: "\25BC"; /* Down arrow */
+    float: right;
+}
+
+.dropdown-list {
+    position: absolute;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ddd;
+    background: #ffffff;
+    width: 100%;
+    max-height: 200px; /* Limit height to prevent overflow */
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.dropdown-list li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-list li:hover {
+    background: #f5f5f5;
+}
+
+.hidden {
+    display: none;
+}
+@keyframes fadeEffect {
+    from {opacity: 0;}
+	to {opacity: 1;}
+	}
+#myCanvas {
+    touch-action: none; /* Prevents default touch behaviors like scrolling */
+	}
+
+</style>
 
 <script>
 function debugLog(obj) {
@@ -79,13 +139,7 @@ function debugLog(obj) {
 </script>
 </head>
 <body>
-	<div id="tabsContainer"></div>
-
-<input type="file" id="file-input" />
-<select name="outline-selector" id="outline-selector"></select>
-<button id='downloadAppBtn'>Download App</button>
-
-
+<div id="tabsContainer"></div>
 <script>
 "use strict";
 const deg=Math.PI/180;
@@ -101,9 +155,6 @@ function deepCopyArray(arr) {
     return arr.map(item => Array.isArray(item) ? deepCopyArray(item) : item);
 }
     </script>
-<script id="main" src="./index.js" type="module">
-</script>
-<br/>
-<a href="/Turtle/output.html" download="Turtle.html" >Download Turtle.html</a>
+<script id="main" src="./index.js" type="module"></script> 
 </body>
 </html>

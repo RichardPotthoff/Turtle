@@ -6,20 +6,20 @@ let {outlines, brickworks}=JSON.parse(JSON.stringify(cookiecutters));
 let cookieCutterArea=2000;
 
 function updateOutlineSelector(){
-	while(outlineSelector.options.length) outlineSelector.options.remove(0);
+// Update options when needed
 	Object.entries(outlines).forEach(([k2,v2]) => {
 			v2["turtlePath"].forEach((x)=>{x[1]*=deg;});
-			var el = document.createElement("option");
-			el.textContent=k2;
-			el.value=k2;
-			outlineSelector.appendChild(el);
-		});
-    const event = new Event ( 'change', { bubbles: true });
-	outlineSelector.dispatchEvent(event);
+	});
+outlineSelector.updateOptions(Object.entries(outlines).map(([k2, v2]) => ({
+    text: k2,
+    value: k2
+})));
+//    const event = new Event ( 'change', { bubbles: true });
+//outlineSelector.dispatchEvent(event);
 };
 
-function readSingleFile(e) {
-  var file = e.target.files[0];
+function readSingleFile(files) {
+  var file = files[0];
   if (!file) {
     return;
   }
@@ -31,7 +31,7 @@ function readSingleFile(e) {
 	updateOutlineSelector();
 	
 	brickworks=decodedContents["brickworks"];
-	document.getElementById('downloadBtn').disabled=false;
+//	document.getElementById('downloadBtn').disabled=false;
 };
   reader.readAsText(file);
 }
@@ -41,7 +41,7 @@ function displayContents(contents) {
   element.textContent = contents;
 }
 
-function drawSelectedOutline(e) {
+function drawSelectedOutline(key) {
 //	const canvas = document.getElementById('canvas1');
     const canvas = canvas1;
     const ctx = canvas.getContext('2d');
@@ -51,11 +51,7 @@ function drawSelectedOutline(e) {
 	ctx.scale(1,1);
 //	debugLog("target value= "+e.target.value);
 //	debugLog("outlines[e.target.value]= "+outlines[e.target.value]);
-    let key;
-	try {
-		key=e.target.value;
-	} catch (e) {}
-	if (key===undefined) key="Duck";
+    if (key===undefined) key="Duck";
 	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);
 	let scale=Math.sqrt(cookieCutterArea/a);
 	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
@@ -64,17 +60,6 @@ function drawSelectedOutline(e) {
     plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale*5});
 	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});
 //	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:-3,scale:scale*5});
-}
-
-document.getElementById('file-input')
-  .addEventListener('change', readSingleFile, false);
-
-var outlineSelector;
-
-function initDocument(){
-	outlineSelector=document.getElementById('outline-selector');
-	outlineSelector.addEventListener('change', drawSelectedOutline, false);
-	updateOutlineSelector();
 }
 
 // Event listener for the download button
@@ -106,24 +91,25 @@ function downloadOutlines() {
     }
 };
 
-document.getElementById('downloadAppBtn').addEventListener('click', function() {
+function downloadApplication() {
 	const link = document.createElement('a');
         link.href = "/Turtle/output.html";
         link.download = "Turtle.html";
         link.click();
-    
-});
+};
 
 //debugLog(outlineSelector);
 //document.addEventListener("DOMContentLoaded", initDocument);
 
-import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid,FileInput} from './HTML-widgets.js';
+import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid,FileInput,Dropdown} from './HTML-widgets.js';
 function createTabbedInterface() {
     let mainContainer = document.getElementById('tabsContainer');
     window.logElement=OutputText();
 	window.canvas1=Canvas({width:400,height:400} );
 	window.downloadBtn=Button('Download Outlines',downloadOutlines);
+	window.downloadAppBtn=Button('Download Application',downloadApplication);
     window.uploadOutlinesFile=FileInput({accept:'*.json', onChange:readSingleFile});
+	window.outlineSelector=Dropdown([],drawSelectedOutline);
     let tabs = Tab([
         {
             title: 'Design',
@@ -137,7 +123,7 @@ function createTabbedInterface() {
         },
         {
             title: 'Preview',
-            content: Grid([canvas1,VBox([downloadBtn,uploadOutlinesFile])])//document.createElement('div') // Placeholder for preview content
+            content: Grid([canvas1,VBox([downloadBtn, uploadOutlinesFile, downloadAppBtn,window.outlineSelector])])//document.createElement('div') // Placeholder for preview content
         },
         {
             title: 'log',
@@ -152,6 +138,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 	createTabbedInterface();
 	tabs.showTab(1);
 	window.logElement.appendText("This is some output text.");
-	canvas1.onDraw()
-	initDocument();
+	canvas1.onDraw();
+	updateOutlineSelector();
 });

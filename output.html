@@ -16,11 +16,16 @@
         .hbox { flex-direction: row; }
         .vbox { flex-direction: column; }
         .slider { width: 200px; height: 200px; } /* For vertical sliders */
+		
 		.tab-widget {
-            width: 100%;
+		    width: 100vw;
+		    height: 100vh;
+		    display: flex;
+		    flex-direction: column;
 		}
 		
 		.tab-headers {
+			flex-shrink: 0;
 		    display: flex;
 		    border-bottom: 1px solid #ccc;
 		}
@@ -40,45 +45,182 @@
 		}
 		
 		.tab-content {
+			flex-grow: 1;
+            overflow: hidden;
 		    padding: 0px;
 		}
 		
 		.tab-pane {
 			padding: 10px;
 			border: 1px solid #999;
+			height: 100%;
+            overflow-y: auto;
 		    display: none; /* Hidden by default */
 		    animation: fadeEffect 1s; /* Fading effect */
 		}
-		
-		@keyframes fadeEffect {
-		    from {opacity: 0;}
-		    to {opacity: 1;}
+		.custom-file-input {
+		    display: flex;
+		    align-items: center;
 		}
-		#myCanvas {
-            touch-action: none; /* Prevents default touch behaviors like scrolling */
-        }
+		
+		.custom-file-input button {
+		    /* Style your button here */
+		    background-color: #f1f1f1;
+		    border: 1px solid #ddd;
+		    padding: 5px 10px;
+		    cursor: pointer;
+		}
+		
+		.custom-file-input span {
+		    font-style: italic;
+		    color: #777;
+		}
+		.custom-dropdown {
+    position: relative;
+    display: inline-block;
+}
 
-    </style>
+.dropdown-button {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    padding: 10px 20px;
+    cursor: pointer;
+    width: 200px;
+    text-align: left;
+}
+
+.dropdown-button::after {
+    content: "\25BC"; /* Down arrow */
+    float: right;
+}
+
+.dropdown-list {
+    position: absolute;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ddd;
+    background: #ffffff;
+    width: 100%;
+    max-height: 200px; /* Limit height to prevent overflow */
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.dropdown-list li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-list li:hover {
+    background: #f5f5f5;
+}
+
+.hidden {
+    display: none;
+}
+@keyframes fadeEffect {
+    from {opacity: 0;}
+	to {opacity: 1;}
+	}
+#myCanvas {
+    touch-action: none; /* Prevents default touch behaviors like scrolling */
+	}
+
+</style>
 <script>
-function debugLog(obj){const logElement=document.getElementById('debugLogText');logElement.innerHTML+=JSON.stringify(obj)+'<br>';logElement.scrollTop=logElement.scrollHeight;};</script>
+function debugLog(obj){console.log(obj);if(window.logElement){window.logElement.appendText(JSON.stringify(obj));}
+};</script>
 </head>
 <body>
 <div id="tabsContainer"></div>
-<div>
-<canvas height="500" id="arcCanvas" width="500"></canvas>
-<!-- Add this to your HTML body -->
-<div id="debugLogText" style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; overflow-y: scroll; background: white; color: black;"></div>
-</div>
-<input id="file-input" type="file"/>
-<select id="outline-selector" name="outline-selector"></select>
-<button id="downloadBtn">Download Outlines</button>
-<button id="downloadAppBtn">Download App</button>
 <script>
 "use strict";const deg=Math.PI/180;const rad2deg=1/deg;</script>
 <script>
-function formatFloat(num,decimalPlaces){return num.toFixed(decimalPlaces);}function deepCopyArray(arr){return arr.map(item=>Array.isArray(item)?deepCopyArray(item):item);}</script>
-<script id="main" type="text/javascript">(function(global){function TurtlePathLengthArea(TurtlePath){let totalLength=0;let totalArea=0;let firstMoment=[0,0];let arcStartPoint=[0,0];let arcStartAngle=0;let arcEndAngle=0;for(let[arcLength,arcAngle]of TurtlePath){const halfArcAngle=arcAngle/2;const chordAngle=arcStartAngle+halfArcAngle;const cosChordAngle=Math.cos(chordAngle);const sinChordAngle=Math.sin(chordAngle);totalLength+=arcLength;let chordLength;if(arcAngle !==0){if(arcLength !==0){const radius=arcLength/arcAngle;const sinHalfArcAngle=Math.sin(halfArcAngle);chordLength=radius*sinHalfArcAngle*2;const arcSegmentArea=0.5*radius**2*(arcAngle-Math.sin(arcAngle));const y_a=(2/3)*(radius*sinHalfArcAngle)**3;totalArea+=arcSegmentArea;firstMoment[0]+=arcSegmentArea*(arcStartPoint[0]-radius*Math.sin(arcStartAngle))+y_a*sinChordAngle;firstMoment[1]+=arcSegmentArea*(arcStartPoint[1]+radius*Math.cos(arcStartAngle))-y_a*cosChordAngle;}else{chordLength=0;}}else{chordLength=arcLength;}const arcEndPoint=[arcStartPoint[0]+chordLength*cosChordAngle,arcStartPoint[1]+chordLength*sinChordAngle];arcEndAngle=arcStartAngle+arcAngle;const triangleArea=(arcStartPoint[0]*arcEndPoint[1]-arcEndPoint[0]*arcStartPoint[1])/2;totalArea+=triangleArea;firstMoment[0]+=triangleArea*(arcStartPoint[0]+arcEndPoint[0])/3;firstMoment[1]+=triangleArea*(arcStartPoint[1]+arcEndPoint[1])/3;arcStartPoint=arcEndPoint;arcStartAngle=arcEndAngle;}const centroid=[firstMoment[0]/totalArea,firstMoment[1]/totalArea];return[totalLength,totalArea,arcStartPoint,arcEndAngle,centroid];}function SegmentsLengthArea(Segs){let l=0;let area=0;let prevPoint=[0,0];let prevAngle=0;for(let i=0;i<Segs.length;i++){let[dl,dang]=Segs[i];let dang_2=dang/2;l+=dl;let chordLength;if(dang !==0){let r=dl/dang;chordLength=r*Math.sin(dang_2)*2;let correction=0.5*r*r*(dang-Math.sin(dang));area+=correction;}else{chordLength=dl;}let currentPoint=[prevPoint[0]+chordLength*Math.cos(prevAngle+dang_2),prevPoint[1]+chordLength*Math.sin(prevAngle+dang_2)];area+=(prevPoint[0]*currentPoint[1]-currentPoint[0]*prevPoint[1])/2;prevPoint=currentPoint;prevAngle+=dang;}return[l,Math.abs(area),prevPoint,prevAngle];}function*Segments2Complex({p0_a0_segs=[[[0,0],[1,0]],[]],scale=1.0,tol=0.05,offs=0,loops=1,return_start=false}){const[p0,a0]=p0_a0_segs[0];const Segs=p0_a0_segs[1];let a=a0.slice();let p=p0.slice();p[0]=p[0]-a[0]*offs;p[1]=p[1]-a[1]*offs;let L=0;if(return_start){yield{point:p,angle:a,length:L,segmentIndex:-1};}let loopcount=0;while(loops===null||loops===Infinity||loopcount<loops){loopcount++;for(let X=0;X<Segs.length;X++){let[l,da,..._]=Segs[X];l*=scale;let n;let v;let dda;if(da !==0){let r=l/da;r+=offs;if(r !==0){l=r*da;let dl=2*Math.sqrt(2*Math.abs(r)*tol);n=Math.max(Math.ceil(6*Math.abs(da/(2*Math.PI))),Math.floor(l/dl)+1);let dda2=[Math.cos(0.5*da/n),Math.sin(0.5*da/n)];v=[2*r*dda2[1]*dda2[0],2*r*dda2[1]*dda2[1]];v=[v[0]*a[0]-v[1]*a[1],v[0]*a[1]+v[1]*a[0]];}else{n=1;v=[0,0];}dda=[Math.cos(da/n),Math.sin(da/n)];for(let i=0;i<n;i++){L+=l/n;p[0]+=v[0];p[1]+=v[1];a=[a[0]*dda[0]-a[1]*dda[1],a[0]*dda[1]+a[1]*dda[0]];yield{point:p.slice(),angle:a,length:L,segmentIndex:X};v=[v[0]*dda[0]-v[1]*dda[1],v[0]*dda[1]+v[1]*dda[0]];}}else{n=1;L+=l;p[0]+=l*a[0];p[1]+=l*a[1];yield{point:p.slice(),angle:a,length:L,segmentIndex:X};}}}}function plot_segments(ctx,{p0=[0,0],a0=[1,0],segs=[],scale=1.0,tol=0.05,offs=0,loops=1,return_start=true}={}){let gen=Segments2Complex({p0_a0_segs:[[p0,a0],segs],scale:scale,tol:tol,offs:0,loops:loops,return_start:return_start});ctx.beginPath();let{value:{point,angle:[cos_ang,sin_ang]}}=gen.next();ctx.moveTo(point[0]-offs*sin_ang,point[1]+offs*cos_ang);for(let{point,angle:[cos_ang,sin_ang]}of gen){ctx.lineTo(point[0]-offs*sin_ang,point[1]+offs*cos_ang);}ctx.stroke()}if(!("modules" in global)){global["modules"]={}}global.modules["turtle.js"]={TurtlePathLengthArea:TurtlePathLengthArea,SegmentsLengthArea:SegmentsLengthArea,plot_segments:plot_segments};})(window);(function(global){const cookiecutters={"outlines":{"Star":{"turtlePath":[[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0]]},"Plain":{"turtlePath":[[50,360.0]]},"Scalloped":{"turtlePath":[[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0]]},"Heart":{"turtlePath":[[0.45,-45.0],[10.0,180.0],[6.91,-10.0],[1.1,110.0],[6.91,-10.0],[10.0,180.0],[0.45,-45.0]]},"Duck":{"turtlePath":[[0.4,-10.0],[13.297,25.0],[3,-80.0],[4,160.0],[22.913,90.0],[15,90.0],[5,-90.0],[5,20.0],[3,170.0],[2,-20.0],[3,-90.0],[15,220.0],[5,-125.0]]},"Tree":{"turtlePath":[[0.75,40.0],[3,0.0],[1.5,140.0],[0.6,0.0],[1.0,-140.0],[3,0.0],[1.5,140.0],[0.6,0.0],[1.0,-140.0],[3,0.0],[1.5,140.0],[0.6,0.0],[1.0,-140.0],[3,0.0],[1.5,140.0],[11.431,0.0],[1.5,140.0],[3,0.0],[1.0,-140.0],[0.6,0.0],[1.5,140.0],[3,0.0],[1.0,-140.0],[0.6,0.0],[1.5,140.0],[3,0.0],[1.0,-140.0],[0.6,0.0],[1.5,140.0],[3,0.0],[0.75,40.0]]},"L":{"turtlePath":[[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,90],[8,0],[0,-90],[16,0],[0,90],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[16,0],[0,-180],[16,0],[0,90],[4,0],[0,90],[4,0],[0,90],[24,0],[0,-180],[24,0],[0,90],[4,0],[0,90],[8,0],[0,-180]]}},"brickworks":{"centered":[[[-0.45,0.9],[-1.35,0.9],[0.45,0.9],[1.35,0.9]],[[-0.8,0.8],[-1.6,0.8],[0.8,0.8],[1.6,0.8],[0.0,0.8]],[[-1.1,0.733],[-1.833,0.733],[1.1,0.733],[1.833,0.733],[-0.367,0.733],[0.367,0.733]],[[-0.92,0.92],[-1.84,0.92],[0.92,0.92],[1.84,0.92],[0.0,0.92]],[[0.0,1.0],[-1.9,1.0],[1.9,1.0]],[[0.0,0.8],[-2.0,1.0],[2.0,1.0]],[[0.0,0.6],[-2.05,0.9],[2.05,0.9]],[[0.0,0.5],[-2.05,0.9],[2.05,0.9]],[[0.0,0.5],[-2.05,0.9],[2.05,0.9]],[[0.0,0.5],[-1.95,0.9],[1.95,0.9]],[[0.0,0.5],[-1.85,0.9],[1.85,0.9]],[[0.0,0.5],[-1.7,1.0],[1.7,1.0]],[[0.0,0.5],[-1.5,1.0],[1.5,1.0]],[[0.0,0.5],[-1.3,1.0],[1.3,1.0]],[[0.0,0.5],[-1.1,1.0],[1.1,1.0]],[[0.0,0.5],[-0.9,1.0],[0.9,1.0]],[[0.0,0.6],[-0.75,0.9],[0.75,0.9]],[[-0.5,1.0],[0.5,1.0]],[[-0.533,0.533],[-0.0,0.533],[0.533,0.533]],[[-0.3,0.6],[0.3,0.6]]]}};if(!("modules" in global)){global["modules"]={}}global.modules["outline-data.js"]={cookiecutters:cookiecutters};})(window);(function(global){function HBox(children,options={}){let div=document.createElement('div');div.className='hbox';if(options.style)Object.assign(div.style,options.style);children.forEach(child=>div.appendChild(child));return div;}function VBox(children,options={}){let div=document.createElement('div');div.className='vbox';if(options.style)Object.assign(div.style,options.style);children.forEach(child=>div.appendChild(child));return div;}function FloatSlider(options={}){let input=document.createElement('input');input.type='range';input.className=options.orientation==='vertical'?'slider-vertical':'slider';input.min=options.min||0;input.max=options.max||100;input.value=options.value||50;input.step=options.step||1;input.addEventListener('input',function(){if(options.onChange)options.onChange(this.value);});return input;}function Button(description,onClick){let button=document.createElement('button');button.textContent=description;button.addEventListener('click',onClick);return button;}function Tab(panes,options={}){let tabContainer=document.createElement('div');tabContainer.className='tab-widget';let tabHeaders=document.createElement('div');tabHeaders.className='tab-headers';tabContainer.appendChild(tabHeaders);let paneContainer=document.createElement('div');paneContainer.className='tab-content';tabContainer.appendChild(paneContainer);panes.forEach((pane,index)=>{let header=document.createElement('button');header.className='tab-header';header.textContent=pane.title;header.addEventListener('click',()=>showTab(index));tabHeaders.appendChild(header);let content=document.createElement('div');content.className='tab-pane';content.style.display=index===0?'block':'none';content.appendChild(pane.content);paneContainer.appendChild(content);});function showTab(index){Array.from(paneContainer.children).forEach((pane,i)=>{pane.style.display=i===index?'block':'none';});Array.from(tabHeaders.children).forEach((header,i)=>{header.classList.toggle('active',i===index);});}return tabContainer;}function Canvas(options={}){let canvas=document.createElement('canvas');canvas.width=options.width||300;canvas.height=options.height||300;let ctx=canvas.getContext('2d');canvas.onDraw=()=>(options.onDraw||function(ctx){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#D3D3D3';ctx.fillRect(0,0,canvas.width,canvas.height);})(ctx);return canvas;}function OutputText(options={}){let div=document.createElement('div');div.className='output-text';div.appendText=function(text){let p=document.createElement('p');p.textContent=text;div.appendChild(p);div.scrollTop=div.scrollHeight;};return div;}if(!("modules" in global)){global["modules"]={}}global.modules["HTML-widgets.js"]={HBox:HBox,VBox:VBox,FloatSlider:FloatSlider,Button:Button,Tab:Tab,Canvas:Canvas,OutputText:OutputText};})(window);(function(global){let{plot_segments,SegmentsLengthArea,TurtlePathLengthArea}=modules["turtle.js"];let{cookiecutters}=modules["outline-data.js"];let{outlines,brickworks}=JSON.parse(JSON.stringify(cookiecutters));let cookieCutterArea=2000;function updateOutlineSelector(){while(outlineSelector.options.length)outlineSelector.options.remove(0);Object.entries(outlines).forEach(([k2,v2])=>{v2["turtlePath"].forEach((x)=>{x[1]*=deg;});var el=document.createElement("option");el.textContent=k2;el.value=k2;outlineSelector.appendChild(el);});const event=new Event('change',{bubbles:true});outlineSelector.dispatchEvent(event);};function readSingleFile(e){var file=e.target.files[0];if(!file){return;}var reader=new FileReader();reader.onload=function(e){var contents=e.target.result;let decodedContents=JSON.parse(contents);outlines=decodedContents["outlines"];updateOutlineSelector();brickworks=decodedContents["brickworks"];document.getElementById('downloadBtn').disabled=false;};reader.readAsText(file);}function displayContents(contents){var element=document.getElementById('file-content');element.textContent=contents;}function drawSelectedOutline(e){const canvas=document.getElementById('arcCanvas');const ctx=canvas.getContext('2d');ctx.reset();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.translate(canvas.width/2,canvas.height/2);ctx.scale(1,1);let key;try{key=e.target.value;}catch(e){}if(key===undefined)key="Duck";let[l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);let scale=Math.sqrt(cookieCutterArea/a);debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);let a0=[1,0];let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale*5});plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});}document.getElementById('file-input').addEventListener('change',readSingleFile,false);var outlineSelector;function initDocument(){outlineSelector=document.getElementById('outline-selector');outlineSelector.addEventListener('change',drawSelectedOutline,false);updateOutlineSelector();}document.getElementById('downloadBtn').addEventListener('click',function(){if(outlines&&brickworks){const outlinesCopy={};for(let key in outlines){let outline={};outlinesCopy[key]=outline;let valueArrayCopy=[...outlines[key]["turtlePath"]];outlinesCopy[key]["turtlePath"]=valueArrayCopy;valueArrayCopy.forEach(([l,angRad],i,arr)=>{arr[i]=[l,Math.round(angRad*rad2deg*1000)/1000];});};const content='{\n"outlines":'+stringifyFormatted(outlinesCopy,2,3)+', \n"brickworks":'+stringifyFormatted(brickworks,2,2)+"\n}";const blob=new Blob([content],{type:'text/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='cookie-cutters_downloaded.json';link.click();URL.revokeObjectURL(link.href);}});document.getElementById('downloadAppBtn').addEventListener('click',function(){const link=document.createElement('a');link.href="/Turtle/output.html";link.download="Turtle.html";link.click();});document.addEventListener("DOMContentLoaded",initDocument);let{OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button}=modules["HTML-widgets.js"];function createTabbedInterface(){let mainContainer=document.getElementById('tabsContainer');window.output1=OutputText();window.canvas1=Canvas();let tabs=Tab([{title:'Design',content:VBox([HBox([FloatSlider({min:0,max:10,value:5,orientation:'vertical'}),Button('Download G-Code',()=>console.log('G-Code download initiated'))]),])},{title:'Preview',content:canvas1},{title:'G-Code',content:output1}]);mainContainer.appendChild(tabs);}document.addEventListener('DOMContentLoaded',()=>{createTabbedInterface();output1.appendText("This is some output text.");canvas1.onDraw();});})(window);</script>
-<br/>
-<a download="Turtle.html" href="/Turtle/output.html">Download Turtle.html</a>
+function formatFloat(num,decimalPlaces){return num.toFixed(decimalPlaces);}
+function deepCopyArray(arr){return arr.map(item=>Array.isArray(item)?deepCopyArray(item):item);}
+</script>
+<script id="main" type="text/javascript">(function(global){function TurtlePathLengthArea(TurtlePath){let totalLength=0;let totalArea=0;let firstMoment=[0,0];let arcStartPoint=[0,0];let arcStartAngle=0;let arcEndAngle=0;for(let[arcLength,arcAngle] of TurtlePath){const halfArcAngle=arcAngle/2;const chordAngle=arcStartAngle+halfArcAngle;const cosChordAngle=Math.cos(chordAngle);const sinChordAngle=Math.sin(chordAngle);totalLength+=arcLength;let chordLength;if(arcAngle !==0){if(arcLength !==0){const radius=arcLength/arcAngle;const sinHalfArcAngle=Math.sin(halfArcAngle);chordLength=radius*sinHalfArcAngle*2;const arcSegmentArea=0.5*radius**2*(arcAngle-Math.sin(arcAngle));const y_a=(2/3)*(radius*sinHalfArcAngle)**3;totalArea+=arcSegmentArea;firstMoment[0]+=arcSegmentArea*(arcStartPoint[0]-radius*Math.sin(arcStartAngle))+y_a*sinChordAngle;firstMoment[1]+=arcSegmentArea*(arcStartPoint[1]+radius*Math.cos(arcStartAngle))-y_a*cosChordAngle;} else{chordLength=0;}
+} else{chordLength=arcLength;}
+const arcEndPoint=[arcStartPoint[0]+chordLength*cosChordAngle,arcStartPoint[1]+chordLength*sinChordAngle
+];arcEndAngle=arcStartAngle+arcAngle;const triangleArea=(arcStartPoint[0]*arcEndPoint[1]-arcEndPoint[0]*arcStartPoint[1])/2;totalArea+=triangleArea;firstMoment[0]+=triangleArea*(arcStartPoint[0]+arcEndPoint[0])/3;firstMoment[1]+=triangleArea*(arcStartPoint[1]+arcEndPoint[1])/3;arcStartPoint=arcEndPoint;arcStartAngle=arcEndAngle;}
+const centroid=[firstMoment[0]/totalArea,firstMoment[1]/totalArea];return[totalLength,totalArea,arcStartPoint,arcEndAngle,centroid];}
+function SegmentsLengthArea(Segs){let l=0;let area=0;let prevPoint=[0,0];let prevAngle=0;for(let i=0;i<Segs.length;i++){let[dl,dang]=Segs[i];let dang_2=dang/2;l+=dl;let chordLength;if(dang !==0){let r=dl/dang;chordLength=r*Math.sin(dang_2)*2;let correction=0.5*r*r*(dang-Math.sin(dang));area+=correction;} else{chordLength=dl;}
+let currentPoint=[prevPoint[0]+chordLength*Math.cos(prevAngle+dang_2),prevPoint[1]+chordLength*Math.sin(prevAngle+dang_2)
+];area+=(prevPoint[0]*currentPoint[1]-currentPoint[0]*prevPoint[1])/2;prevPoint=currentPoint;prevAngle+=dang;}
+return[l,Math.abs(area),prevPoint,prevAngle];}
+function*Segments2Complex({p0_a0_segs=[[[0,0],[1,0]],[]],scale=1.0,tol=0.05,offs=0,loops=1,return_start=false }){const[p0,a0]=p0_a0_segs[0];const Segs=p0_a0_segs[1];let a=a0.slice();let p=p0.slice();p[0]=p[0]-a[0]*offs;p[1]=p[1]-a[1]*offs;let L=0;if(return_start){yield{point:p,angle:a,length:L,segmentIndex:-1 };}
+let loopcount=0;while(loops===null||loops===Infinity||loopcount<loops){loopcount++;for(let X=0;X<Segs.length;X++){let[l,da,..._]=Segs[X];l*=scale;let n;let v;let dda;if(da !==0){let r=l/da;r+=offs;if(r !==0){l=r*da;let dl=2*Math.sqrt(2*Math.abs(r)*tol);n=Math.max(Math.ceil(6*Math.abs(da/(2*Math.PI))),Math.floor(l/dl)+1);let dda2=[Math.cos(0.5*da/n),Math.sin(0.5*da/n)];v=[2*r*dda2[1]*dda2[0],2*r*dda2[1]*dda2[1]];v=[v[0]*a[0]-v[1]*a[1],v[0]*a[1]+v[1]*a[0]];} else{n=1;v=[0,0];}
+dda=[Math.cos(da/n),Math.sin(da/n)];for(let i=0;i<n;i++){L+=l/n;p[0]+=v[0];p[1]+=v[1];a=[a[0]*dda[0]-a[1]*dda[1],a[0]*dda[1]+a[1]*dda[0]];yield{point:p.slice(),angle:a,length:L,segmentIndex:X };v=[v[0]*dda[0]-v[1]*dda[1],v[0]*dda[1]+v[1]*dda[0]];}
+} else{n=1;L+=l;p[0]+=l*a[0];p[1]+=l*a[1];yield{point:p.slice(),angle:a,length:L,segmentIndex:X };}
+}
+}
+}
+function plot_segments(ctx,{p0=[0,0],a0=[1,0],segs=[],scale=1.0,tol=0.05,offs=0,loops=1,return_start=true}={}){let gen=Segments2Complex({p0_a0_segs:[[p0,a0],segs],scale:scale,tol:tol,offs:0,loops:loops,return_start:return_start
+});ctx.beginPath();let{value:{point,angle:[cos_ang,sin_ang]}}=gen.next();ctx.moveTo(point[0]-offs*sin_ang,point[1]+offs*cos_ang);for(let{point,angle:[cos_ang,sin_ang]} of gen){ctx.lineTo(point[0]-offs*sin_ang,point[1]+offs*cos_ang);}
+ctx.stroke()
+}
+if(!("modules" in global)){global["modules"]={}
+}
+global.modules["turtle.js"]={TurtlePathLengthArea:TurtlePathLengthArea,SegmentsLengthArea:SegmentsLengthArea,plot_segments:plot_segments};})(window);(function(global){const cookiecutters={"outlines":{"Star":{"turtlePath":[[2,-58.0 ],[8,0.0 ],[3.2,130.0 ],[8,0.0 ],[2,-58.0 ],[8,0.0 ],[3.2,130.0 ],[8,0.0 ],[2,-58.0 ],[8,0.0 ],[3.2,130.0 ],[8,0.0 ],[2,-58.0 ],[8,0.0 ],[3.2,130.0 ],[8,0.0 ],[2,-58.0 ],[8,0.0 ],[3.2,130.0 ],[8,0.0 ]
+]},"Plain":{"turtlePath":[[50,360.0 ]
+]},"Scalloped":{"turtlePath":[[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ],[1.0,-110.0 ],[2,150.0 ]
+]},"Heart":{"turtlePath":[[0.45,-45.0 ],[10.0,180.0 ],[6.91,-10.0 ],[1.1,110.0 ],[6.91,-10.0 ],[10.0,180.0 ],[0.45,-45.0 ]
+]},"Duck":{"turtlePath":[[0.4,-10.0 ],[13.297,25.0 ],[3,-80.0 ],[4,160.0 ],[22.913,90.0 ],[15,90.0 ],[5,-90.0 ],[5,20.0 ],[3,170.0 ],[2,-20.0 ],[3,-90.0 ],[15,220.0 ],[5,-125.0 ]
+]},"Tree":{"turtlePath":[[0.75,40.0 ],[3,0.0 ],[1.5,140.0 ],[0.6,0.0 ],[1.0,-140.0 ],[3,0.0 ],[1.5,140.0 ],[0.6,0.0 ],[1.0,-140.0 ],[3,0.0 ],[1.5,140.0 ],[0.6,0.0 ],[1.0,-140.0 ],[3,0.0 ],[1.5,140.0 ],[11.431,0.0 ],[1.5,140.0 ],[3,0.0 ],[1.0,-140.0 ],[0.6,0.0 ],[1.5,140.0 ],[3,0.0 ],[1.0,-140.0 ],[0.6,0.0 ],[1.5,140.0 ],[3,0.0 ],[1.0,-140.0 ],[0.6,0.0 ],[1.5,140.0 ],[3,0.0 ],[0.75,40.0 ]
+]},"L":{"turtlePath":[[8,0 ],[0,90 ],[4,0 ],[0,90 ],[8,0 ],[0,-180 ],[8,0 ],[0,90 ],[4,0 ],[0,90 ],[8,0 ],[0,90 ],[8,0 ],[0,-90 ],[16,0 ],[0,90 ],[8,0 ],[0,90 ],[4,0 ],[0,90 ],[8,0 ],[0,-180 ],[8,0 ],[0,90 ],[4,0 ],[0,90 ],[8,0 ],[0,-180 ],[8,0 ],[0,90 ],[4,0 ],[0,90 ],[8,0 ],[0,-180 ],[8,0 ],[0,90 ],[4,0 ],[0,90 ],[8,0 ],[0,-180 ],[8,0 ],[0,90 ],[4,0 ],[0,90 ],[16,0 ],[0,-180 ],[16,0 ],[0,90 ],[4,0 ],[0,90 ],[4,0 ],[0,90 ],[24,0 ],[0,-180 ],[24,0 ],[0,90 ],[4,0 ],[0,90 ],[8,0 ],[0,-180 ]
+]}
+},"brickworks":{"centered":[[[-0.45,0.9 ],[-1.35,0.9 ],[0.45,0.9 ],[1.35,0.9 ] ],[[-0.8,0.8 ],[-1.6,0.8 ],[0.8,0.8 ],[1.6,0.8 ],[0.0,0.8 ] ],[[-1.1,0.733 ],[-1.833,0.733 ],[1.1,0.733 ],[1.833,0.733 ],[-0.367,0.733 ],[0.367,0.733 ] ],[[-0.92,0.92 ],[-1.84,0.92 ],[0.92,0.92 ],[1.84,0.92 ],[0.0,0.92 ] ],[[0.0,1.0 ],[-1.9,1.0 ],[1.9,1.0 ] ],[[0.0,0.8 ],[-2.0,1.0 ],[2.0,1.0 ] ],[[0.0,0.6 ],[-2.05,0.9 ],[2.05,0.9 ] ],[[0.0,0.5 ],[-2.05,0.9 ],[2.05,0.9 ] ],[[0.0,0.5 ],[-2.05,0.9 ],[2.05,0.9 ] ],[[0.0,0.5 ],[-1.95,0.9 ],[1.95,0.9 ] ],[[0.0,0.5 ],[-1.85,0.9 ],[1.85,0.9 ] ],[[0.0,0.5 ],[-1.7,1.0 ],[1.7,1.0 ] ],[[0.0,0.5 ],[-1.5,1.0 ],[1.5,1.0 ] ],[[0.0,0.5 ],[-1.3,1.0 ],[1.3,1.0 ] ],[[0.0,0.5 ],[-1.1,1.0 ],[1.1,1.0 ] ],[[0.0,0.5 ],[-0.9,1.0 ],[0.9,1.0 ] ],[[0.0,0.6 ],[-0.75,0.9 ],[0.75,0.9 ] ],[[-0.5,1.0 ],[0.5,1.0 ] ],[[-0.533,0.533 ],[-0.0,0.533 ],[0.533,0.533 ] ],[[-0.3,0.6 ],[0.3,0.6 ] ]
+]
+}
+};if(!("modules" in global)){global["modules"]={}
+}
+global.modules["outline-data.js"]={cookiecutters:cookiecutters};})(window);(function(global){function stringifyFormatted(data,initialIndent=2,maxIndentLevel=2){const maxIndent=initialIndent*maxIndentLevel;let jsonString=JSON.stringify(data,null,initialIndent);let result='';let lines=jsonString.split('\n');let previousLine='';for(let i=0;i<lines.length;i++){let line=lines[i];let trimmedLine=line.trim();let indent=line.match(/^\s*/)[0].length;if(indent<maxIndent||(indent===maxIndent&&(trimmedLine.startsWith('[')||trimmedLine.startsWith('{')))){if(previousLine !==''){result+=previousLine+'\n';}
+previousLine=line;} else{if(previousLine !==''){result+=previousLine+' ';}
+previousLine=trimmedLine;}
+if(i===lines.length-1&&previousLine !==''){result+=previousLine;}
+}
+return result;}
+if(!("modules" in global)){global["modules"]={}
+}
+global.modules["json_utils.js"]={stringifyFormatted:stringifyFormatted};})(window);(function(global){function HBox(children,options={}){let div=document.createElement('div');div.className='hbox';if(options.style) Object.assign(div.style,options.style);children.forEach(child=>div.appendChild(child));return div;}
+function VBox(children,options={}){let div=document.createElement('div');div.className='vbox';if(options.style) Object.assign(div.style,options.style);children.forEach(child=>div.appendChild(child));return div;}
+function Grid(children,options={}){let div=document.createElement('div');div.className='grid-container';Object.assign(div.style,{display:'grid',width:'100vw',height:'100vh',gridGap:'10px'
+});function adjustLayout(){const aspectRatio=window.innerWidth/window.innerHeight;if(aspectRatio>1){div.style.gridTemplateColumns=options.controlsRight?'1fr auto':'auto 1fr';div.style.gridTemplateAreas=options.controlsRight?"'canvas controls'":"'controls canvas'";div.style.gridTemplateRows='1fr';} else{div.style.gridTemplateColumns='1fr';div.style.gridTemplateRows='1fr auto';div.style.gridTemplateAreas="'canvas' 'controls'";}
+}
+window.addEventListener('resize',adjustLayout);adjustLayout();children.forEach((child,index)=>{let childDiv=document.createElement('div');childDiv.appendChild(child);childDiv.style.gridArea=index===0?'canvas':'controls';div.appendChild(childDiv);});return div;}
+function FloatSlider(options={}){let input=document.createElement('input');input.type='range';input.className=options.orientation==='vertical'?'slider-vertical':'slider';input.min=options.min||0;input.max=options.max||100;input.value=options.value||50;input.step=options.step||1;input.addEventListener('input',function(){if(options.onChange) options.onChange(this.value);});return input;}
+function Button(description,onClick){let button=document.createElement('button');button.textContent=description;button.addEventListener('click',onClick);return button;}
+function FileInput({accept='*',multiple=false,onChange}={}){let fileInputContainer=document.createElement('div');fileInputContainer.className='custom-file-input';let fileInput=document.createElement('input');fileInput.type='file';fileInput.accept=accept;fileInput.multiple=multiple;fileInput.style.display='none';fileInput.addEventListener('change',handleFileSelect);let fileButton=document.createElement('button');fileButton.textContent=multiple?'Choose Files':'Choose File';fileButton.addEventListener('click',()=>fileInput.click());let fileDisplay=document.createElement('span');fileDisplay.textContent='No file chosen';fileDisplay.style.marginLeft='10px';function handleFileSelect(event){let selectedFiles=event.target.files;if(selectedFiles.length===1){fileDisplay.textContent=selectedFiles[0].name;} else if(selectedFiles.length>1){fileDisplay.textContent=`${selectedFiles.length} files selected`;} else{fileDisplay.textContent='No file chosen';}
+if(onChange) onChange(selectedFiles);}
+fileInputContainer.appendChild(fileButton);fileInputContainer.appendChild(fileDisplay);fileInputContainer.appendChild(fileInput);return fileInputContainer;}
+function Dropdown(options=[],onSelect){let container=document.createElement('div');container.className='custom-dropdown';let dropdownButton=document.createElement('button');dropdownButton.className='dropdown-button';dropdownButton.textContent=options.length>0?options[0].text:'Select an option';container.appendChild(dropdownButton);let dropdownList=document.createElement('ul');dropdownList.className='dropdown-list hidden';container.appendChild(dropdownList);function createOption(option){let listItem=document.createElement('li');listItem.textContent=option.text;listItem.dataset.value=option.value;listItem.addEventListener('click',()=>{dropdownButton.textContent=option.text;onSelect(option.value);dropdownList.classList.add('hidden');});return listItem;}
+container.addOption=function(option){let listItem=createOption(option);dropdownList.appendChild(listItem);};container.removeOption=function(optionTextOrValue){let optionToRemove=Array.from(dropdownList.children).find(li=>li.textContent===optionTextOrValue||li.dataset.value===optionTextOrValue
+);if(optionToRemove){dropdownList.removeChild(optionToRemove);}
+};container.updateOptions=function(newOptions){const currentValue=this.querySelector('.dropdown-button').textContent;let newSelectedValue=newOptions[0]?newOptions[0].value:null;dropdownList.innerHTML='';newOptions.forEach(option=>this.addOption(option));if(newOptions.length>0){dropdownButton.textContent=newOptions[0].text;newSelectedValue=newOptions[0].value;} else{dropdownButton.textContent='Select an option';}
+if(currentValue !==dropdownButton.textContent&&onSelect){onSelect(newSelectedValue);}
+const event=new Event('change',{bubbles:true });this.dispatchEvent(event);};options.forEach(option=>container.addOption(option));dropdownButton.addEventListener('click',(event)=>{event.stopPropagation();dropdownList.classList.toggle('hidden');});document.addEventListener('click',(event)=>{if(!container.contains(event.target)&&!dropdownList.classList.contains('hidden')){dropdownList.classList.add('hidden');}
+});return container;}
+function Tab(panes,options={}){let tabContainer=document.createElement('div');tabContainer.className='tab-widget';let tabHeaders=document.createElement('div');tabHeaders.className='tab-headers';tabContainer.appendChild(tabHeaders);let paneContainer=document.createElement('div');paneContainer.className='tab-content';tabContainer.appendChild(paneContainer);panes.forEach((pane,index)=>{let header=document.createElement('button');header.className='tab-header';header.textContent=pane.title;header.addEventListener('click',()=>showTab(index));tabHeaders.appendChild(header);let content=document.createElement('div');content.className='tab-pane';content.style.display=index===0?'block':'none';content.appendChild(pane.content);paneContainer.appendChild(content);});function showTab(index){Array.from(paneContainer.children).forEach((pane,i)=>{pane.style.display=i===index?'flex':'none';});Array.from(tabHeaders.children).forEach((header,i)=>{header.classList.toggle('active',i===index);});}
+tabContainer.showTab=showTab;if(options.initialTab !==undefined&&options.initialTab>=0&&options.initialTab<panes.length){showTab(options.initialTab);}
+window.addEventListener('resize',adjustLayout);adjustLayout();return tabContainer;function adjustLayout(){tabContainer.style.height=window.innerHeight+'px';tabContainer.style.width=window.innerWidth+'px';}
+}
+function Canvas(options={}){let canvas=document.createElement('canvas');canvas.width=options.width||300;canvas.height=options.height||300;let ctx=canvas.getContext('2d');canvas.onDraw=()=>(options.onDraw||function(ctx){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#D3D3D3';ctx.fillRect(0,0,canvas.width,canvas.height);})(ctx);return canvas;}
+function OutputText(options={}){let div=document.createElement('div');div.className='output-text';div.style.overflowY='auto';div.style.maxHeight=options.maxHeight||'200px';div.appendText=function(text){let p=document.createElement('p');p.textContent=text;div.appendChild(p);if(div.children.length>(options.maxLines||500)){div.removeChild(div.firstChild);}
+div.scrollTop=div.scrollHeight;};return div;}
+if(!("modules" in global)){global["modules"]={}
+}
+global.modules["HTML-widgets.js"]={HBox:HBox,VBox:VBox,Grid:Grid,FloatSlider:FloatSlider,Button:Button,FileInput:FileInput,Dropdown:Dropdown,Tab:Tab,Canvas:Canvas,OutputText:OutputText};})(window);(function(global){let{plot_segments,SegmentsLengthArea,TurtlePathLengthArea}=modules["turtle.js"];let{cookiecutters}=modules["outline-data.js"];let{stringifyFormatted}=modules["json_utils.js"];let{outlines,brickworks}=JSON.parse(JSON.stringify(cookiecutters));let cookieCutterArea=2000;function updateOutlineSelector(){Object.entries(outlines).forEach(([k2,v2])=>{v2["turtlePath"].forEach((x)=>{x[1]*=deg;});});outlineSelector.updateOptions(Object.entries(outlines).map(([k2,v2])=>({text:k2,value:k2
+})));};function readSingleFile(files){var file=files[0];if(!file){return;}
+var reader=new FileReader();reader.onload=function(e){var contents=e.target.result;let decodedContents=JSON.parse(contents);outlines=decodedContents["outlines"];updateOutlineSelector();brickworks=decodedContents["brickworks"];};reader.readAsText(file);}
+function displayContents(contents){var element=document.getElementById('file-content');element.textContent=contents;}
+function drawSelectedOutline(key){const canvas=canvas1;const ctx=canvas.getContext('2d');ctx.reset();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.translate(canvas.width/2,canvas.height/2);ctx.scale(1,1);if(key===undefined) key="Duck";let[l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);let scale=Math.sqrt(cookieCutterArea/a);debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);let a0=[1,0];let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale*5});plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});}
+function downloadOutlines(){console.log("Downloading Outlines")
+if(outlines&&brickworks){const outlinesCopy={};for(let key in outlines){let outline={};outlinesCopy[key]=outline;let valueArrayCopy=[...outlines[key]["turtlePath"]];outlinesCopy[key]["turtlePath"]=valueArrayCopy;valueArrayCopy.forEach(([l,angRad],i,arr)=>{arr[i]=[l,Math.round(angRad*rad2deg*1000)/1000];});};const content='{\n"outlines":'+stringifyFormatted(outlinesCopy,2,3)+', \n"brickworks":'+stringifyFormatted(brickworks,2,2)+"\n}";const blob=new Blob([content],{type:'text/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='cookie-cutters_downloaded.json';link.click();URL.revokeObjectURL(link.href);}
+};function downloadApplication(){const link=document.createElement('a');link.href="/Turtle/output.html";link.download="Turtle.html";link.click();};let{OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid,FileInput,Dropdown}=modules["HTML-widgets.js"];function createTabbedInterface(){let mainContainer=document.getElementById('tabsContainer');window.logElement=OutputText();window.canvas1=Canvas({width:400,height:400} );window.downloadBtn=Button('Download Outlines',downloadOutlines);window.downloadAppBtn=Button('Download Application',downloadApplication);window.uploadOutlinesFile=FileInput({accept:'*.json',onChange:readSingleFile});window.outlineSelector=Dropdown([],drawSelectedOutline);let tabs=Tab([{title:'Design',content:VBox([HBox([FloatSlider({min:0,max:10,value:5,orientation:'vertical' }),Button('Download G-Code',()=>console.log('G-Code download initiated'))
+]),])
+},{title:'Preview',content:Grid([canvas1,VBox([downloadBtn,uploadOutlinesFile,downloadAppBtn,window.outlineSelector])]) },{title:'log',content:window.logElement }
+]);window.tabs=tabs;mainContainer.appendChild(tabs);}
+document.addEventListener('DOMContentLoaded',()=>{createTabbedInterface();tabs.showTab(1);window.logElement.appendText("This is some output text.");canvas1.onDraw();updateOutlineSelector();});})(window);</script>
 </body>
 </html>

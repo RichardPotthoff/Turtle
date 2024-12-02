@@ -122,6 +122,99 @@ export function FileInput({accept = '*', multiple = false, onChange} = {}) {
 
     return fileInputContainer;
 }
+
+export function Dropdown(options = [], onSelect) {
+    let container = document.createElement('div');
+    container.className = 'custom-dropdown';
+
+    // The dropdown button which displays the currently selected option
+    let dropdownButton = document.createElement('button');
+    dropdownButton.className = 'dropdown-button';
+    dropdownButton.textContent = options.length > 0 ? options[0].text : 'Select an option';
+    container.appendChild(dropdownButton);
+
+    // The list of options
+    let dropdownList = document.createElement('ul');
+    dropdownList.className = 'dropdown-list hidden';
+    container.appendChild(dropdownList);
+
+    function createOption(option) {
+        let listItem = document.createElement('li');
+        listItem.textContent = option.text;
+        listItem.dataset.value = option.value;
+        listItem.addEventListener('click', () => {
+            dropdownButton.textContent = option.text;
+            onSelect(option.value);
+            dropdownList.classList.add('hidden');
+        });
+        return listItem;
+    }
+
+    // Method to add an option
+    container.addOption = function(option) {
+        let listItem = createOption(option);
+        dropdownList.appendChild(listItem);
+    };
+
+    // Method to remove an option by its text or value
+    container.removeOption = function(optionTextOrValue) {
+        let optionToRemove = Array.from(dropdownList.children).find(li => 
+            li.textContent === optionTextOrValue || li.dataset.value === optionTextOrValue
+        );
+        if (optionToRemove) {
+            dropdownList.removeChild(optionToRemove);
+        }
+    };
+
+    // Method to update all options
+    container.updateOptions = function(newOptions) {
+        // Store the currently selected value before clearing options
+        const currentValue = this.querySelector('.dropdown-button').textContent;
+        let newSelectedValue = newOptions[0] ? newOptions[0].value : null;
+
+        // Clear existing options
+        dropdownList.innerHTML = '';
+        
+        // Add new options
+        newOptions.forEach(option => this.addOption(option));
+        
+        // Update the button text if there are options
+        if (newOptions.length > 0) {
+            dropdownButton.textContent = newOptions[0].text;
+            newSelectedValue = newOptions[0].value; // Update to new selection
+        } else {
+            dropdownButton.textContent = 'Select an option';
+        }
+
+        // If the selected value has changed after updating options, trigger the change event
+        if (currentValue !== dropdownButton.textContent && onSelect) {
+            onSelect(newSelectedValue);
+        }
+
+        // Trigger the change event manually
+        const event = new Event('change', { bubbles: true });
+        this.dispatchEvent(event);
+    };
+
+    // Populate initial options
+    options.forEach(option => container.addOption(option));
+
+    // Toggle visibility of the dropdown list
+    dropdownButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        dropdownList.classList.toggle('hidden');
+    });
+
+    // Close the dropdown if clicking outside of it
+    document.addEventListener('click', (event) => {
+        if (!container.contains(event.target) && !dropdownList.classList.contains('hidden')) {
+            dropdownList.classList.add('hidden');
+        }
+    });
+
+    return container;
+}
+
 export function Tab(panes, options = {}) {
     let tabContainer = document.createElement('div');
     tabContainer.className = 'tab-widget';
