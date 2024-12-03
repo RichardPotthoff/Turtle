@@ -18,8 +18,8 @@ outlineSelector.updateOptions(Object.entries(outlines).map(([k2, v2]) => ({
 //outlineSelector.dispatchEvent(event);
 };
 
-function readSingleFile(files) {
-  var file = files[0];
+function readSingleFile(e) {
+  var file = e.target.files[0];
   if (!file) {
     return;
   }

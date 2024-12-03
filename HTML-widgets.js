@@ -65,9 +65,9 @@ export function FloatSlider(options = {}) {
     input.step = options.step || 1;
 
     // Add event listener for value change
-    input.addEventListener('input', function() {
-        if (options.onChange) options.onChange(this.value);
-    });
+	if (options.onChange){
+      input.addEventListener('input',option.onChange);
+    };
 
     return input;
 }
@@ -75,51 +75,43 @@ export function FloatSlider(options = {}) {
 export function Button(description, onClick) {
     let button = document.createElement('button');
     button.textContent = description;
+    button.className = 'button-style'; // Add this line to apply the CSS class
     button.addEventListener('click', onClick);
     return button;
 }
 
-export function FileInput({accept = '*', multiple = false, onChange} = {}) {
-    // Create the container for our custom file input
+export function FileInput({accept = '*', multiple = false, onChange, dataset = {}}) {
     let fileInputContainer = document.createElement('div');
     fileInputContainer.className = 'custom-file-input';
 
-    // Hidden actual file input
     let fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = accept;
-    fileInput.multiple = multiple;  // Set to true or false based on parameter
-    fileInput.style.display = 'none';  // Hide the actual input
-    fileInput.addEventListener('change', handleFileSelect);
+    fileInput.multiple = multiple;
+    fileInput.style.display = 'none'; // Hides the actual file input
+    
+    // Apply dataset properties
+    for (let key in dataset) {
+        fileInput.dataset[key] = dataset[key];
+    }
 
-    // Custom button for file selection
+    // Direct event listener
+    fileInput.addEventListener('change', onChange);
+
     let fileButton = document.createElement('button');
     fileButton.textContent = multiple ? 'Choose Files' : 'Choose File';
     fileButton.addEventListener('click', () => fileInput.click());
 
-    // Display for file names
     let fileDisplay = document.createElement('span');
+    fileDisplay.className = 'file-display';
     fileDisplay.textContent = 'No file chosen';
     fileDisplay.style.marginLeft = '10px';
 
-    // Function to handle file selection
-    function handleFileSelect(event) {
-        let selectedFiles = event.target.files;
-        if (selectedFiles.length === 1) {
-            fileDisplay.textContent = selectedFiles[0].name;
-        } else if (selectedFiles.length > 1) {
-            fileDisplay.textContent = `${selectedFiles.length} files selected`;
-        } else {
-            fileDisplay.textContent = 'No file chosen';
-        }
-        if (onChange) onChange(selectedFiles); // Pass the files to onChange if provided
-    }
-
-    // Assemble the components
     fileInputContainer.appendChild(fileButton);
     fileInputContainer.appendChild(fileDisplay);
     fileInputContainer.appendChild(fileInput);
 
+    // Return the container, not the input directly
     return fileInputContainer;
 }
 
