@@ -19,7 +19,9 @@ outlineSelector.updateOptions(Object.entries(outlines).map(([k2, v2]) => ({
 };
 
 function readSingleFile(e) {
+  console.log(e)
   var file = e.target.files[0];
+  debugLog("file= "+file)
   if (!file) {
     return;
   }
@@ -41,16 +43,17 @@ function displayContents(contents) {
   element.textContent = contents;
 }
 
-function drawSelectedOutline(key) {
+function drawSelectedOutline(e) {
 //	const canvas = document.getElementById('canvas1');
-    const canvas = canvas1;
+//    const canvas = canvas1;
     const ctx = canvas.getContext('2d');
 	ctx.reset();
 	ctx.clearRect(0,0,canvas.width,canvas.height);
 	ctx.translate(canvas.width/2,canvas.height/2);
 	ctx.scale(1,1);
-//	debugLog("target value= "+e.target.value);
+// 	debugLog("target value= "+e.value);
 //	debugLog("outlines[e.target.value]= "+outlines[e.target.value]);
+    let key=e.target.value;
     if (key===undefined) key="Duck";
 	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);
 	let scale=Math.sqrt(cookieCutterArea/a);
@@ -105,11 +108,11 @@ import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid,FileInput,Dropdo
 function createTabbedInterface() {
     let mainContainer = document.getElementById('tabsContainer');
     window.logElement=OutputText();
-	window.canvas1=Canvas({width:400,height:400} );
+	window.canvas=Canvas({width:500,height:500} );
 	window.downloadBtn=Button('Download Outlines',downloadOutlines);
 	window.downloadAppBtn=Button('Download Application',downloadApplication);
-    window.uploadOutlinesFile=FileInput({accept:'*.json', onChange:readSingleFile});
-	window.outlineSelector=Dropdown([],drawSelectedOutline);
+    window.uploadOutlinesFile=FileInput({accept:"application/json", onChange:readSingleFile});
+	window.outlineSelector=Dropdown(['Duck'],drawSelectedOutline);
     let tabs = Tab([
         {
             title: 'Design',
@@ -123,7 +126,8 @@ function createTabbedInterface() {
         },
         {
             title: 'Preview',
-            content: Grid([canvas1,VBox([downloadBtn, uploadOutlinesFile, downloadAppBtn,window.outlineSelector])])//document.createElement('div') // Placeholder for preview content
+            content: Grid([canvas,VBox([downloadBtn, uploadOutlinesFile,
+			  downloadAppBtn,window.outlineSelector],{style:{width:'300px', maxwidth:'300px',border:"2px solid red"}})],{controlsRight:false})//document.createElement('div') // Placeholder for preview content
         },
         {
             title: 'log',
@@ -138,6 +142,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 	createTabbedInterface();
 	tabs.showTab(1);
 	window.logElement.appendText("This is some output text.");
-	canvas1.onDraw();
+//	canvas.onDraw();
 	updateOutlineSelector();
 });

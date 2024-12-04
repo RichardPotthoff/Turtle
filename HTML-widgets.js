@@ -1,56 +1,83 @@
-export function HBox(children, options = {}) {
-    let div = document.createElement('div');
-    div.className = 'hbox';
-    if (options.style) Object.assign(div.style, options.style);
-    children.forEach(child => div.appendChild(child));
-    return div;
+// Generic function to create a box with customizable options
+function createBox(className, children, options = {}) {
+    let box = document.createElement('div');
+    box.className = className;
+
+    // Apply options to the box
+    if (options.attributes) {
+        for (let [key, value] of Object.entries(options.attributes)) {
+            box.setAttribute(key, value);
+        }
+    }
+    if (options.style) {
+        Object.assign(box.style, options.style);
+    }
+    if (options.childrenOptions) {
+        children.forEach((child, index) => {
+            if (options.childrenOptions[index]) {
+                // Here you would need a recursive function or another way to apply options to children
+                Object.assign(child, options.childrenOptions[index]);
+            }
+        });
+    }
+
+    // Append children
+    children.forEach(child => {
+        box.appendChild(child);
+    });
+
+    return box;
 }
 
+// VBox specific function
 export function VBox(children, options = {}) {
-    let div = document.createElement('div');
-    div.className = 'vbox';
-    if (options.style) Object.assign(div.style, options.style);
-    children.forEach(child => div.appendChild(child));
-    return div;
+    return createBox('vbox', children, options);
+}
+
+// HBox specific function
+export function HBox(children, options = {}) {
+    return createBox('hbox', children, options);
 }
 
 export function Grid(children, options = {}) {
     let div = document.createElement('div');
     div.className = 'grid-container';
     
-    // Apply styles for responsive layout
-    Object.assign(div.style, {
-        display: 'grid',
-        width: '100vw',
-        height: '100vh',
-        gridGap: '10px'
-    });
-
-    // Initial setup for layout based on aspect ratio
-    function adjustLayout() {
-        const aspectRatio = window.innerWidth / window.innerHeight;
-        if (aspectRatio > 1) { // Landscape
-            div.style.gridTemplateColumns = options.controlsRight ? '1fr auto' : 'auto 1fr';
-            div.style.gridTemplateAreas = options.controlsRight ? "'canvas controls'" : "'controls canvas'";
-            div.style.gridTemplateRows = '1fr';
-        } else { // Portrait
-            div.style.gridTemplateColumns = '1fr';
-            div.style.gridTemplateRows = '1fr auto';
-            div.style.gridTemplateAreas = "'canvas' 'controls'";
-        }
+    if (options.controlsRight === false) {
+        div.dataset.controlsPosition = 'left';
     }
-
-    // Listen for window resize events
-    window.addEventListener('resize', adjustLayout);
-    adjustLayout(); // Call once to set initial layout
-
-    // Appending children with their grid areas
+    
     children.forEach((child, index) => {
         let childDiv = document.createElement('div');
         childDiv.appendChild(child);
-        childDiv.style.gridArea = index === 0 ? 'canvas' : 'controls';
+        if (index === 0) {
+            childDiv.className = 'canvas-area';
+            childDiv.style.gridArea = 'canvas';
+        } else {
+            childDiv.className = 'controls-area';
+            childDiv.style.gridArea = 'controls';
+        }
         div.appendChild(childDiv);
     });
+
+    function adjustLayout() {
+        if (window.innerHeight > window.innerWidth) {
+            const canvas = div.querySelector('.canvas-area');
+            if (canvas) {
+                canvas.style.height = 'auto';
+            }
+            const controls = div.querySelector('.controls-area');
+            if (controls) {
+                controls.style.height = 'auto';
+            }
+        } else {
+            // Landscape mode adjustments
+        }
+    }
+
+    // Add event listener and initial call
+    window.addEventListener('resize', adjustLayout);
+    adjustLayout(); // Call once to set initial layout
 
     return div;
 }
@@ -88,15 +115,12 @@ export function FileInput({accept = '*', multiple = false, onChange, dataset = {
     fileInput.type = 'file';
     fileInput.accept = accept;
     fileInput.multiple = multiple;
-    fileInput.style.display = 'none'; // Hides the actual file input
+    fileInput.style.display = 'none';
     
     // Apply dataset properties
     for (let key in dataset) {
         fileInput.dataset[key] = dataset[key];
     }
-
-    // Direct event listener
-    fileInput.addEventListener('change', onChange);
 
     let fileButton = document.createElement('button');
     fileButton.textContent = multiple ? 'Choose Files' : 'Choose File';
@@ -104,14 +128,32 @@ export function FileInput({accept = '*', multiple = false, onChange, dataset = {
 
     let fileDisplay = document.createElement('span');
     fileDisplay.className = 'file-display';
-    fileDisplay.textContent = 'No file chosen';
+    fileDisplay.textContent = multiple ? 'No files chosen' : 'No file chosen';
     fileDisplay.style.marginLeft = '10px';
 
     fileInputContainer.appendChild(fileButton);
     fileInputContainer.appendChild(fileDisplay);
     fileInputContainer.appendChild(fileInput);
 
-    // Return the container, not the input directly
+    // Add event listener to update file display
+    fileInput.addEventListener('change', (e) => {
+        if (onChange) {
+            onChange(e); // Call the original onChange handler
+        }
+        let fileName;
+        if (multiple) {
+            fileName = Array.from(e.target.files).map(file => file.name).join(', ');
+        } else {
+            fileName = e.target.files[0] ? e.target.files[0].name : 'No file chosen';
+        }
+        fileDisplay.textContent = fileName || (multiple ? 'No files chosen' : 'No file chosen');
+        
+        // Reset the input if needed (useful for multiple file selections to allow choosing the same file again)
+        if (multiple) {
+            e.target.value = ''; // This resets the input to allow selection of the same file again
+        }
+    });
+
     return fileInputContainer;
 }
 
@@ -119,13 +161,11 @@ export function Dropdown(options = [], onSelect) {
     let container = document.createElement('div');
     container.className = 'custom-dropdown';
 
-    // The dropdown button which displays the currently selected option
     let dropdownButton = document.createElement('button');
     dropdownButton.className = 'dropdown-button';
     dropdownButton.textContent = options.length > 0 ? options[0].text : 'Select an option';
     container.appendChild(dropdownButton);
 
-    // The list of options
     let dropdownList = document.createElement('ul');
     dropdownList.className = 'dropdown-list hidden';
     container.appendChild(dropdownList);
@@ -134,34 +174,61 @@ export function Dropdown(options = [], onSelect) {
         let listItem = document.createElement('li');
         listItem.textContent = option.text;
         listItem.dataset.value = option.value;
-        listItem.addEventListener('click', () => {
+        listItem.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default behavior if any
             dropdownButton.textContent = option.text;
-            onSelect(option.value);
+            triggerChangeEvent(option.value);
             dropdownList.classList.add('hidden');
         });
         return listItem;
     }
 
+	function triggerChangeEvent(newValue) {
+	    dropdownButton.dataset.value = newValue; // Store the new value in dataset
+	    if (onSelect) {
+	        onSelect({
+	            type: 'change',
+	            target: {
+	                value: newValue,
+	                // Include other properties that might be useful
+	                textContent: dropdownButton.textContent,
+	                container: container  // Reference to the container if needed
+	            },
+	            currentTarget: container
+	        });
+	    }
+	}
+	
     // Method to add an option
     container.addOption = function(option) {
         let listItem = createOption(option);
         dropdownList.appendChild(listItem);
+        // If adding to an empty list, select this option
+        if (dropdownList.children.length === 1) {
+            dropdownButton.textContent = option.text;
+            triggerChangeEvent(option.value);
+        }
     };
 
-    // Method to remove an option by its text or value
+    // Method to remove an option
     container.removeOption = function(optionTextOrValue) {
         let optionToRemove = Array.from(dropdownList.children).find(li => 
             li.textContent === optionTextOrValue || li.dataset.value === optionTextOrValue
         );
         if (optionToRemove) {
             dropdownList.removeChild(optionToRemove);
+            // If removed option was selected or if no options left, trigger change event
+            if (optionToRemove.textContent === dropdownButton.textContent || dropdownList.childElementCount === 0) {
+                dropdownButton.textContent = dropdownList.childElementCount === 0 ? 'Select an option' : dropdownList.firstElementChild.textContent;
+                triggerChangeEvent(dropdownList.childElementCount === 0 ? undefined : dropdownList.firstElementChild.dataset.value);
+            }
         }
     };
 
     // Method to update all options
     container.updateOptions = function(newOptions) {
         // Store the currently selected value before clearing options
-        const currentValue = this.querySelector('.dropdown-button').textContent;
+        const currentValue = dropdownButton.dataset.value;
         let newSelectedValue = newOptions[0] ? newOptions[0].value : null;
 
         // Clear existing options
@@ -173,19 +240,15 @@ export function Dropdown(options = [], onSelect) {
         // Update the button text if there are options
         if (newOptions.length > 0) {
             dropdownButton.textContent = newOptions[0].text;
-            newSelectedValue = newOptions[0].value; // Update to new selection
+            newSelectedValue = newOptions[0].value;
         } else {
             dropdownButton.textContent = 'Select an option';
         }
 
         // If the selected value has changed after updating options, trigger the change event
-        if (currentValue !== dropdownButton.textContent && onSelect) {
-            onSelect(newSelectedValue);
+        if (currentValue !== newSelectedValue) {
+            triggerChangeEvent(newSelectedValue);
         }
-
-        // Trigger the change event manually
-        const event = new Event('change', { bubbles: true });
-        this.dispatchEvent(event);
     };
 
     // Populate initial options
@@ -247,18 +310,32 @@ export function Tab(panes, options = {}) {
     if (options.initialTab !== undefined && options.initialTab >= 0 && options.initialTab < panes.length) {
         showTab(options.initialTab);
     }
-
-    // Listen for window resize events to adjust layout
-    window.addEventListener('resize', adjustLayout);
-    adjustLayout(); // Initial adjustment
-
-    return tabContainer;
-
+	
     function adjustLayout() {
-        // This function can be expanded if you need more dynamic behavior
-        tabContainer.style.height = window.innerHeight + 'px'; // Ensure full height
-        tabContainer.style.width = window.innerWidth + 'px'; // Ensure full width
-    }
+	    const clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
+	    const clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+	
+	    // Ensure the tab widget fills the available client area
+	    tabContainer.style.height = clientHeight + 'px';
+	    tabContainer.style.width = clientWidth + 'px';
+	}
+	
+    // Listen for window resize events to adjust layout
+//    window.addEventListener('resize', adjustLayout);
+//    adjustLayout(); // Initial adjustment
+//    document.addEventListener('DOMContentLoaded', adjustLayout);
+	function adjustTabContentHeight() {
+	    let headersHeight = document.querySelector('.tab-headers').offsetHeight;
+	    let tabContent = document.querySelector('.tab-content');
+	    tabContent.style.height = `calc(100vh - ${headersHeight}px)`;
+	}
+	
+	// Call this function when the tabs change or on resize
+	window.addEventListener('resize', adjustTabContentHeight);
+	// Also, call it when the DOM is loaded
+	document.addEventListener('DOMContentLoaded', adjustTabContentHeight);	
+    return tabContainer;
+	
 }
 
 

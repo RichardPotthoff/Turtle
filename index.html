@@ -12,53 +12,21 @@
     }
     
     /* Basic styles for layout */
-    .hbox, .vbox { display: flex; }
+    .hbox, .vbox, .box { display: flex; }
     .hbox { flex-direction: row; }
     .vbox { flex-direction: column; }
     .slider { width: 200px; height: 20px; } /* Corrected to horizontal sliders by default */
     
-    .tab-widget {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
 
-    .tab-headers {
-        flex-shrink: 0;
-        display: flex;
-        border-bottom: 1px solid #ccc;
-    }
-
-    .tab-header {
-        padding: 10px 20px;
-        margin-right: 5px;
-        background-color: #f1f1f1;
-        border: none;
-        outline: none;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    .tab-header.active {
-        background-color: #ccc;
-    }
-
-    .tab-content {
-        flex-grow: 1;
-        overflow: hidden;
-    }
-
-    .tab-pane {
-        padding: 10px;
-        border: 1px solid #999;
-        height: 100%;
-        overflow-y: auto;
-        display: none;
-        animation: fadeEffect 1s;
-    }
-
-    /* Uniform button styling */
+	html, body {
+	    margin: 0;
+	    padding: 0;
+	    height: 100%;
+	    width: 100%;
+	    overflow: hidden; /* Prevents scrollbars on body */
+	}
+	
+	/* Uniform button styling */
     .button-style, .tab-header, .custom-file-input button, .dropdown-button {
         background-color: #f1f1f1;
         border: 1px solid #ddd;
@@ -76,6 +44,67 @@
         color: #000;
     }
 
+	.tab-widget {
+	    height: 100%;
+	    width: 100%;
+	    display: flex;
+	    flex-direction: column;
+	    box-sizing: border-box;
+	}
+	
+	.tab-headers {
+	    flex-shrink: 0;
+	    display: flex;
+	    border-bottom: 1px solid #ccc;
+	    padding: 2px; /* Adjust if necessary for spacing */
+	}
+	
+	.tab-header {
+	    padding: 10px 20px;
+	    /* Remove or adjust margins if they cause spacing issues */
+	    background-color: #f1f1f1;
+	    border: none;
+	    outline: none;
+	    cursor: pointer;
+	    transition: 0.3s;
+	    /* This will make sure the tab headers don't wrap */
+	    white-space: nowrap;
+	    overflow: hidden;
+	    text-overflow: ellipsis;
+	}
+	
+	.tab-header.active {
+	    background-color: #ccc;
+	}
+	
+	.tab-content {
+	    flex-grow: 1;
+	    display: flex; /* This allows children to grow to fill container */
+	}
+	
+	.tab-pane {
+	    flex: 1 1 auto; /* Flex grow and shrink as needed */
+	    padding: 10px;
+	    border: 1px solid #999;
+	    /* Remove height: 100% to let flex do its work */
+	    overflow-y: auto; /* Keep this for scrollable content */
+	    display: none;
+	    animation: fadeEffect 1s;
+	}  
+	
+	.tab-pane {
+ 	   display: flex;
+//   	   flex-direction: column;
+	}
+	.tab-pane .controls {
+	    position: absolute;
+	    bottom: 10px; /* Adjust as needed */
+	    left: 10px; /* Adjust as needed */
+	    z-index: 1000; /* Ensure it's on top */
+	}
+	.tab-pane {
+        overflow-y: auto;
+    }
     /* Specific to Custom File Input */
     .custom-file-input {
         display: flex;
@@ -140,6 +169,68 @@
     #myCanvas {
         touch-action: none;
     }
+	#myCanvas {
+        position: relative; /* or adjust to absolute if needed */
+        z-index: 1; /* Lower than the controls */
+    }
+	
+
+.grid-container {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    grid-gap: 10px;
+    box-sizing: border-box;
+}
+
+@media (orientation: portrait) {
+}
+/* For landscape */
+@media (orientation: landscape) {
+    .grid-container {
+        grid-template-columns: 1fr auto;
+        grid-template-areas: "canvas controls" /* Default to controls on the right */;
+    }
+
+    .grid-container[data-controls-position="left"] {
+        grid-template-columns: auto 1fr;
+        grid-template-areas: "controls canvas";
+    }
+}
+
+    /* For portrait */
+	@media (orientation: portrait) {
+		
+	    .tab-widget {
+	        height: 100vh;
+	        width: 100vw;
+	    }
+	    .tab-content {
+	        height: calc(100vh - 40px); /* Assuming tab headers take 40px in height */
+	    }
+
+	.grid-container {
+        grid-template-areas: 
+            "canvas"
+            "controls";
+        grid-template-rows: min-content auto; /* Changed to min-content for canvas and auto for controls */
+        min-height: 100vh;
+    }
+
+    /* Canvas should only be as tall as its content */
+    .grid-container div[style*="grid-area: canvas"] {
+        min-height: 0;
+        max-height: 80vh; /* Limit canvas height to 80% of viewport height */
+    }
+
+    /* Controls should take up the remaining space */
+    .grid-container div[style*="grid-area: controls"] {
+        min-height: 20vh; /* Minimum height for controls */
+        overflow-y: auto; /* Add scroll if controls exceed this space */
+    }
+
+
+}
 </style>
 <script>
 function debugLog(obj) {
