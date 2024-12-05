@@ -93,21 +93,28 @@ function downloadOutlines() {
     }
 };
 
-import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid, FileInput,  Dropdown} from './HTML-widgets.js';
+import {OutputText,Canvas,Tab,Box,VBox,HBox,FloatSlider,Button, FileInput,  Dropdown} from './HTML-widgets.js';
 
-const canvas=Canvas({width:500,height:500} );
+const canvas=Canvas({width:500,height:500});
 const downloadBtn=Button('Download Outlines',downloadOutlines);
 const uploadOutlinesFile=FileInput({accept:"application/json", onChange:readSingleFile});
 const outlineSelector=Dropdown(['Duck'],drawSelectedOutline);
 updateOutlineSelector();
+
+const canvasContainer=Box([canvas]);
 const controls=VBox([downloadBtn, uploadOutlinesFile,
-			     outlineSelector],{style:{width:'300px', maxwidth:'300px',border:"2px solid red"}})
+			     outlineSelector],{style:{width:'300px', maxwidth:'300px',border:"2px solid red"}});
+				 
+export const title="cookie-cutter";
 
-
-function createPaneContent({landscape=true}){
-	return landscape ? HBox([controls,canvas]) : VBox([canvas,controls])
+export function createPaneContent({landscape=true}){
+	return landscape ? HBox([controls,canvasContainer]) : VBox([canvasContainer,controls])
 }
 
+const myDefault={title:title,content:createPaneContent};
+
+export default myDefault;
+
 export function createPane({landscape=true}){
-    return {title: 'Preview',content:createPaneContent({landscape:landscape})}
+    return {title: 'Cookie-Cutter',content:createPaneContent({landscape:landscape})}
 }

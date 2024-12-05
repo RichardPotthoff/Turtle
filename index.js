@@ -7,56 +7,49 @@ function downloadApplication() {
         link.click();
 };
 import {debugLog} from "./logging.js";
-import {OutputText,Button,FloatSlider,VBox,HBox} from './HTML-widgets.js';
+import {OutputText,Button,FloatSlider,Box,VBox,HBox} from './HTML-widgets.js';
 const downloadAppBtn=Button('Download Application',downloadApplication);
 
 //debugLog(outlineSelector);
 //document.addEventListener("DOMContentLoaded", initDocument);
 
 
-function createPane1({landscape=true}){
-    return landscape ?	{
-            title: 'App',
-            content: VBox([
-                HBox([
-                    FloatSlider({ min: 0, max: 10, value: 5, orientation: 'vertical' }),
-					downloadAppBtn
-                ]),
+function createPane1Content({landscape=true}){
+    return landscape ?	
+	           VBox([
+                   HBox([
+                      FloatSlider({ min: 0, max: 10, value: 5, orientation: 'vertical' }),
+					  downloadAppBtn
+                   ]),
                 // Add more design elements
-            ])
-        }
-	    :	{
-            title: 'Design',
-            content: HBox([
+               ])
+	    :
+            HBox([
                 VBox ([
                     FloatSlider({ min: 0, max: 10, value: 5, orientation: 'vertical' }),
 					Button('Download G-Code', () => console.log('G-Code download initiated'))
                 ]),
                 // Add more design elements
             ])
-        }
+        
 }
+const pane1={title:"App",content:createPane1Content};
 
-import {createPane as createPane2} from './cookiecutter.js';
+import pane2 from './cookiecutter.js';
+console.log(pane2.content({landscape:true}));
 window.logElement=OutputText();
-function createPane3({landscape=true}){
-       return landscape ? {
-            title: 'log',
-            content: logElement // Placeholder for G-Code content
-        }
-	    : {
-            title: 'log',
-            content: logElement // Placeholder for G-Code content
-	}
 
+function createPane3Content({landscape=true}){
+       return logElement // Placeholder for G-Code content
 }
+const pane3={title:"log",content:createPane3Content};
 import {Tab} from './HTML-widgets.js';
 
 function createTabbedInterface(paneCreators, options={landscape:true}) {
     // Create tabs once
     const tabs = Tab(paneCreators.map((_, index) => ({
-        title: paneCreators[index](options).title,
-        content: paneCreators[index](options).content
+        title: paneCreators[index].title,
+        content: paneCreators[index].content(options)
     })));
     tabs.showTab(1); // Default to show the second tab (index 1)
 
@@ -64,8 +57,8 @@ function createTabbedInterface(paneCreators, options={landscape:true}) {
         tabWidget: tabs,
         updateContent: (newOptions) => {
             paneCreators.forEach((paneCreator, index) => {
-                const newContent = paneCreator(newOptions);
-                tabs.updateTabContent(index, newContent.content);
+                const newContent = paneCreator.content(newOptions);
+                tabs.updateTabContent(index, newContent);
             });
         }
     };
@@ -74,10 +67,10 @@ function createTabbedInterface(paneCreators, options={landscape:true}) {
 let tabs;
 
 document.addEventListener('DOMContentLoaded',()=>{
-    tabs = createTabbedInterface([createPane1, createPane2, createPane3], {landscape: window.innerHeight < window.innerWidth});
+    tabs = createTabbedInterface([pane1, pane2, pane3], {landscape: window.innerHeight < window.innerWidth});
 	
     document.getElementById('tabsContainer').appendChild(tabs.tabWidget);
-    logElement.appendText("This is some output text.");
+//    logElement.appendText("This is some output text.");
 });
 
 

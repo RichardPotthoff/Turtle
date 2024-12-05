@@ -29,6 +29,10 @@ function createBox(className, children, options = {}) {
     return box;
 }
 
+export function Box(children, options = {}) {
+    return createBox('box', children, options);
+}
+
 // VBox specific function
 export function VBox(children, options = {}) {
     return createBox('vbox', children, options);
@@ -37,49 +41,6 @@ export function VBox(children, options = {}) {
 // HBox specific function
 export function HBox(children, options = {}) {
     return createBox('hbox', children, options);
-}
-
-export function Grid(children, options = {}) {
-    let div = document.createElement('div');
-    div.className = 'grid-container';
-    
-    if (options.controlsRight === false) {
-        div.dataset.controlsPosition = 'left';
-    }
-    
-    children.forEach((child, index) => {
-        let childDiv = document.createElement('div');
-        childDiv.appendChild(child);
-        if (index === 0) {
-            childDiv.className = 'canvas-area';
-            childDiv.style.gridArea = 'canvas';
-        } else {
-            childDiv.className = 'controls-area';
-            childDiv.style.gridArea = 'controls';
-        }
-        div.appendChild(childDiv);
-    });
-
-    function adjustLayout() {
-        if (window.innerHeight > window.innerWidth) {
-            const canvas = div.querySelector('.canvas-area');
-            if (canvas) {
-                canvas.style.height = 'auto';
-            }
-            const controls = div.querySelector('.controls-area');
-            if (controls) {
-                controls.style.height = 'auto';
-            }
-        } else {
-            // Landscape mode adjustments
-        }
-    }
-
-    // Add event listener and initial call
-    window.addEventListener('resize', adjustLayout);
-    adjustLayout(); // Call once to set initial layout
-
-    return div;
 }
 
 export function FloatSlider(options = {}) {
@@ -299,6 +260,7 @@ export function Tab(panes, options = {}) {
     });
 
     function showTab(index) {
+		console.log("showing tab",index);
         Array.from(paneContainer.children).forEach((pane, i) => {
             pane.style.display = i === index ? 'block' : 'none'; // Assuming 'block' is correct here. Adjust as needed.
         });
@@ -371,23 +333,47 @@ export function OutputText(options = {}) {
     let div = document.createElement('div');
     div.className = 'output-text';
     
-    div.style.overflowY = 'auto'; // Make it scrollable vertically
-    div.style.maxHeight = options.maxHeight || '200px'; // Default max height
-    
-    // Limit the number of lines
+    div.style.overflowY = 'auto';
+    div.style.maxHeight = options.maxHeight || '500px';
+    div.style.maxHeight = options.maxHeight;
     div.appendText = function(text) {
         let p = document.createElement('p');
         p.textContent = text;
         div.appendChild(p);
         
         if (div.children.length > (options.maxLines || 500)) {
-            // Remove the first child if we exceed the line limit
             div.removeChild(div.firstChild);
         }
-        // Scroll to the bottom if content overflows
-        div.scrollTop = div.scrollHeight;
+        
+        // Check if any parent is hidden
+        if (isAnyParentHidden(div)) {
+            if (!div.observer) {
+                div.observer = new IntersectionObserver(entries => {
+                    if (entries[0].isIntersecting) {
+                        div.scrollTop = div.scrollHeight;
+                        div.observer.disconnect();
+                        delete div.observer;
+                    }
+                }, { threshold: 1 });
+                div.observer.observe(div);
+            }
+        } else {
+            div.scrollTop = div.scrollHeight; // Scroll if already visible
+        }
     };
     
     return div;
 }
-// Example for creating and appending elements
+
+// Helper function to check if any parent is hidden
+function isAnyParentHidden(element) {
+    let parent = element;
+    while (parent) {
+        let style = window.getComputedStyle(parent);
+        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+            return true;
+        }
+        parent = parent.parentElement;
+    }
+    return false;
+}

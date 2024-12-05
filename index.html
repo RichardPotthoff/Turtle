@@ -7,8 +7,7 @@
 	
 <style>
     canvas { 
-		width: 500px;
-		height: 500px;
+		
         background: lightgray;  /* Or any contrasting color */
         border: 1px solid black;
     }
@@ -144,7 +143,7 @@
         margin: 0;
         border: 1px solid #ddd;
         background: #ffffff;
-        width: 100%;
+        width: 200px;
         max-height: 200px;
         overflow-y: auto;
         z-index: 1000;
@@ -152,6 +151,7 @@
 
     .dropdown-list li {
         padding: 10px;
+		border: 1px solid #ddd;
         cursor: pointer;
     }
 
@@ -175,30 +175,9 @@
         position: relative; /* or adjust to absolute if needed */
         z-index: 1; /* Lower than the controls */
     }
-	
 
-.grid-container {
-    display: grid;
-    width: 100%;
-    height: 100%;
-    grid-gap: 10px;
-    box-sizing: border-box;
 }
 
-@media (orientation: portrait) {
-}
-/* For landscape */
-@media (orientation: landscape) {
-    .grid-container {
-        grid-template-columns: 1fr auto;
-        grid-template-areas: "canvas controls" /* Default to controls on the right */;
-    }
-
-    .grid-container[data-controls-position="left"] {
-        grid-template-columns: auto 1fr;
-        grid-template-areas: "controls canvas";
-    }
-}
 
     /* For portrait */
 	@media (orientation: portrait) {
@@ -211,31 +190,10 @@
 	        height: calc(100vh - 40px); /* Assuming tab headers take 40px in height */
 	    }
 
-	.grid-container {
-        grid-template-areas: 
-            "canvas"
-            "controls";
-        grid-template-rows: min-content auto; /* Changed to min-content for canvas and auto for controls */
-        min-height: 100vh;
-    }
-
-    /* Canvas should only be as tall as its content */
-    .grid-container div[style*="grid-area: canvas"] {
-        min-height: 0;
-        max-height: 80vh; /* Limit canvas height to 80% of viewport height */
-    }
-
-    /* Controls should take up the remaining space */
-    .grid-container div[style*="grid-area: controls"] {
-        min-height: 20vh; /* Minimum height for controls */
-        overflow-y: auto; /* Add scroll if controls exceed this space */
-    }
-
+		
 
 }
 </style>
-<script>
-</script>
 </head>
 <body>
 <div id="tabsContainer"></div>
