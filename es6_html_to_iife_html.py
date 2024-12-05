@@ -2,6 +2,7 @@ import re
 import os
 from bs4 import BeautifulSoup
 from collections import defaultdict
+import re
 
 def combine_patterns(*patterns):
   combined_pattern ='|'.join(f'(?P<pattern{i}>'+pattern[0]+')' for i,pattern in enumerate(patterns))
@@ -21,7 +22,7 @@ string_pattern = r"'(?:[^'\\]|\\.)*'|" + r'"(?:[^"\\]|\\.)*"|'
 multiline_string_pattern = r'`(?:[^`\\]|\\.)*`'
 comment_pattern = r'//.*?(?:\n|$)'#include the trailing newline
 multiline_comment_pattern = r'/\*[\s\S]*?\*/'
-delimiters=r'[=({:<>;,?%&|*+-/' #removing ]}) because of problems with asi not inserting semicolons if there is a \n behind the delimiter
+delimiters=r'[=({:<>;,?%&|*+-/' #removing ]}) from delimiters because of problems with asi not inserting semicolons if there is a \n behind the delimiter
 whitespaces_to_right_of_delimiter =r'(?<=['+delimiters+r'])\s*'
 whitespaces_to_left_of_delimiter =r'\s*(?=['+delimiters+'\]})'+r'])'
 whitespaces_containing_newline=r'\s*\n\s*'
@@ -62,16 +63,19 @@ def convert_es6_to_iife(content, module_filename=None, minify=False):
       return '\n'.join(result)
       
   exports={}
-  export_pattern = r'(?=^|;)\s*(export\s+(?P<export_default>default\s+)?(?P<export_type>function|const|let|var|class)\s+(?P<export_name>\w+)\s*)'
+  export_pattern = r'(?=^|;)\s*(export\s+(?P<export_default>default\s+)?(?:(?P<export_type>function|const|let|var|class)\s+)?(?P<export_name>\w+)\s*)'
   
   def export_callback(match):
       groupdict=match.groupdict()
-      export_type=groupdict['export_type'].strip()
+      export_type=groupdict['export_type']
       export_name=groupdict['export_name'].strip()
       exports[export_name]=export_name
       if groupdict['export_default']:
-        exports['default']=export_name
-      return export_type+' '+export_name #remove the 'export' and 'default' keywords
+        exports['default']=export_name;
+      if export_type:
+        return export_type+' '+export_name #remove the 'export' and 'default' keywords
+      else:
+        return ''
       
   # here we arse parsing for import and export patterns.
   # strings and comment patterns are detected simultaneously, thus preventing the detection of 
@@ -134,7 +138,8 @@ def process_html(html_path,minify=False):
     
     processed_modules = set()
     dependencies = defaultdict(set)
-    
+    for style in soup.find_all('style'):
+      style.string=minify_javascript(style.string)
     for script in soup.find_all('script'):
         if script.get('type') == 'module':
             module_path = script.get('src',None)
@@ -192,3 +197,4 @@ if __name__ == "__main__":
     print("HTML processing completed with modules converted to IIFE.")
     t2=perf_counter()
     print(f'{t2-t1=}')
+    
