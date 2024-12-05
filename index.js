@@ -104,17 +104,16 @@ function downloadApplication() {
 //debugLog(outlineSelector);
 //document.addEventListener("DOMContentLoaded", initDocument);
 
-import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid,FileInput,Dropdown} from './HTML-widgets.js';
-function createTabbedInterface() {
-    let mainContainer = document.getElementById('tabsContainer');
-    window.logElement=OutputText();
-	window.canvas=Canvas({width:500,height:500} );
-	window.downloadBtn=Button('Download Outlines',downloadOutlines);
-	window.downloadAppBtn=Button('Download Application',downloadApplication);
-    window.uploadOutlinesFile=FileInput({accept:"application/json", onChange:readSingleFile});
-	window.outlineSelector=Dropdown(['Duck'],drawSelectedOutline);
-    let tabs = Tab([
-        {
+import {OutputText,Canvas,Tab,VBox,HBox,FloatSlider,Button,Grid, FileInput,  Dropdown} from './HTML-widgets.js';
+const logElement=OutputText();
+const canvas=Canvas({width:500,height:500} );
+const downloadBtn=Button('Download Outlines',downloadOutlines);
+const downloadAppBtn=Button('Download Application',downloadApplication);
+const uploadOutlinesFile=FileInput({accept:"application/json", onChange:readSingleFile});
+const outlineSelector=Dropdown(['Duck'],drawSelectedOutline);
+
+function createPane1({landscape=true}){
+    if (landscape) return	{
             title: 'Design',
             content: VBox([
                 HBox([
@@ -123,25 +122,86 @@ function createTabbedInterface() {
                 ]),
                 // Add more design elements
             ])
-        },
-        {
+        }
+	else return	{
+            title: 'Design',
+            content: VBox([
+                HBox([
+                    FloatSlider({ min: 0, max: 10, value: 5, orientation: 'vertical' }),
+					Button('Download G-Code', () => console.log('G-Code download initiated'))
+                ]),
+                // Add more design elements
+            ])
+        }
+}
+function createPane2({landscape=true}){
+    if (landscape) return {
             title: 'Preview',
             content: Grid([canvas,VBox([downloadBtn, uploadOutlinesFile,
-			  downloadAppBtn,window.outlineSelector],{style:{width:'300px', maxwidth:'300px',border:"2px solid red"}})],{controlsRight:false})//document.createElement('div') // Placeholder for preview content
-        },
-        {
-            title: 'log',
-            content: window.logElement // Placeholder for G-Code content
+			  downloadAppBtn,outlineSelector],{style:{width:'300px', maxwidth:'300px',border:"2px solid red"}})],{controlsRight:false})//document.createElement('div') // Placeholder for preview content
         }
-    ]);
-    window.tabs=tabs;
-    mainContainer.appendChild(tabs);
+    else return {
+            title: 'Preview',
+            content: Grid([canvas,VBox([downloadBtn, uploadOutlinesFile,
+			  downloadAppBtn,outlineSelector],{style:{width:'300px', maxwidth:'300px',border:"2px solid red"}})],{controlsRight:false})//document.createElement('div') // Placeholder for preview content
+        }
+}
+function createPane3({landscape=true}){
+	if (landscape) return {
+            title: 'log',
+            content: logElement // Placeholder for G-Code content
+        }
+	else return {
+            title: 'log',
+            content: logElement // Placeholder for G-Code content
+	}
+
 }
 
+function createTabbedInterface(paneCreators, options={landscape:true}) {
+    // Create tabs once
+    const tabs = Tab(paneCreators.map((_, index) => ({
+        title: paneCreators[index](options).title,
+        content: paneCreators[index](options).content
+    })));
+    tabs.showTab(1); // Default to show the second tab (index 1)
+
+    return {
+        tabWidget: tabs,
+        updateContent: (newOptions) => {
+            paneCreators.forEach((paneCreator, index) => {
+                const newContent = paneCreator(newOptions);
+                tabs.updateTabContent(index, newContent.content);
+            });
+        }
+    };
+}
+
+let tabs;
+
 document.addEventListener('DOMContentLoaded',()=>{
-	createTabbedInterface();
-	tabs.showTab(1);
-	window.logElement.appendText("This is some output text.");
-//	canvas.onDraw();
-	updateOutlineSelector();
+    tabs = createTabbedInterface([createPane1, createPane2, createPane3], {landscape: window.innerHeight < window.innerWidth});
+	
+    document.getElementById('tabsContainer').appendChild(tabs.tabWidget);
+    logElement.appendText("This is some output text.");
+    updateOutlineSelector();
 });
+
+
+const debounce = (func, wait) => {
+    let timeout;
+    return function(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func.apply(this, args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
+// Usage in event listener
+window.addEventListener('resize', debounce(function(event) {
+    const isLandscape = window.innerHeight < window.innerWidth;
+    tabs.updateContent({landscape: isLandscape});
+}, 250));

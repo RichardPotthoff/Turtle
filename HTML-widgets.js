@@ -282,6 +282,8 @@ export function Tab(panes, options = {}) {
     paneContainer.className = 'tab-content';
     tabContainer.appendChild(paneContainer);
 
+    let paneContents = panes.map(pane => pane.content);  // Store references to content elements
+
     panes.forEach((pane, index) => {
         let header = document.createElement('button');
         header.className = 'tab-header';
@@ -298,45 +300,52 @@ export function Tab(panes, options = {}) {
 
     function showTab(index) {
         Array.from(paneContainer.children).forEach((pane, i) => {
-            pane.style.display = i === index ? 'flex' : 'none'; // Changed to 'flex' for consistent sizing
+            pane.style.display = i === index ? 'block' : 'none'; // Assuming 'block' is correct here. Adjust as needed.
         });
         Array.from(tabHeaders.children).forEach((header, i) => {
             header.classList.toggle('active', i === index);
         });
     }
 
+    // Expose showTab function
     tabContainer.showTab = showTab;
+
+    // New function to update tab content
+    function updateTabContent(index, newContent) {
+        if (index >= 0 && index < paneContainer.children.length) {
+            let contentDiv = paneContainer.children[index];
+            // Remove all children from the existing content div
+            while (contentDiv.firstChild) {
+                contentDiv.removeChild(contentDiv.firstChild);
+            }
+            // Append new content
+            contentDiv.appendChild(newContent);
+        }
+    }
+
+    // Expose updateTabContent function
+    tabContainer.updateTabContent = updateTabContent;
 
     if (options.initialTab !== undefined && options.initialTab >= 0 && options.initialTab < panes.length) {
         showTab(options.initialTab);
     }
-	
+    
     function adjustLayout() {
-	    const clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
-	    const clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
-	
-	    // Ensure the tab widget fills the available client area
-	    tabContainer.style.height = clientHeight + 'px';
-	    tabContainer.style.width = clientWidth + 'px';
-	}
-	
+        const clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
+        const clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+    
+        // Ensure the tab widget fills the available client area
+        tabContainer.style.height = clientHeight + 'px';
+        tabContainer.style.width = clientWidth + 'px';
+    }
+
     // Listen for window resize events to adjust layout
-//    window.addEventListener('resize', adjustLayout);
-//    adjustLayout(); // Initial adjustment
-//    document.addEventListener('DOMContentLoaded', adjustLayout);
-	function adjustTabContentHeight() {
-	    let headersHeight = document.querySelector('.tab-headers').offsetHeight;
-	    let tabContent = document.querySelector('.tab-content');
-	    tabContent.style.height = `calc(100vh - ${headersHeight}px)`;
-	}
-	
-	// Call this function when the tabs change or on resize
-	window.addEventListener('resize', adjustTabContentHeight);
-	// Also, call it when the DOM is loaded
-	document.addEventListener('DOMContentLoaded', adjustTabContentHeight);	
+    window.addEventListener('resize', adjustLayout);
+    // Initial adjustment
+    adjustLayout();
+    
     return tabContainer;
-	
-}
+}	
 
 
 export function Canvas(options = {}) {
