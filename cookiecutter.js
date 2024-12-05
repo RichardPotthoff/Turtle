@@ -54,7 +54,7 @@ function drawSelectedOutline(e) {
 // 	debugLog("target value= "+e.value);
 //	debugLog("outlines[e.target.value]= "+outlines[e.target.value]);
     let key=e.target.value;
-    if (key===undefined) key="Duck";
+    if (key===undefined) return;
 	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);
 	let scale=Math.sqrt(cookieCutterArea/a);
 	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
@@ -98,7 +98,7 @@ import {OutputText,Canvas,Tab,Box,VBox,HBox,FloatSlider,Button, FileInput,  Drop
 const canvas=Canvas({width:500,height:500});
 const downloadBtn=Button('Download Outlines',downloadOutlines);
 const uploadOutlinesFile=FileInput({accept:"application/json", onChange:readSingleFile});
-const outlineSelector=Dropdown(['Duck'],drawSelectedOutline);
+const outlineSelector=Dropdown([],drawSelectedOutline);
 updateOutlineSelector();
 
 const canvasContainer=Box([canvas]);
@@ -107,7 +107,8 @@ const controls=VBox([downloadBtn, uploadOutlinesFile,
 				 
 export const title="cookie-cutter";
 
-export function createPaneContent({landscape=true}){
+export function createPaneContent(options={}){
+	let landscape=options.landscape || true;
 	return landscape ? HBox([controls,canvasContainer]) : VBox([canvasContainer,controls])
 }
 

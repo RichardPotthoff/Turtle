@@ -260,7 +260,6 @@ export function Tab(panes, options = {}) {
     });
 
     function showTab(index) {
-		console.log("showing tab",index);
         Array.from(paneContainer.children).forEach((pane, i) => {
             pane.style.display = i === index ? 'block' : 'none'; // Assuming 'block' is correct here. Adjust as needed.
         });

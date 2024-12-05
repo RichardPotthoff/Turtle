@@ -36,7 +36,6 @@ function createPane1Content({landscape=true}){
 const pane1={title:"App",content:createPane1Content};
 
 import pane2 from './cookiecutter.js';
-console.log(pane2.content({landscape:true}));
 window.logElement=OutputText();
 
 function createPane3Content({landscape=true}){
