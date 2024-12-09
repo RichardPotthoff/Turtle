@@ -184,18 +184,16 @@ if __name__ == "__main__":
     from time import perf_counter
     t1=perf_counter()
     print(os.getcwd())
-    os.chdir('../widgets')
+    
     html_file = "index.html"
     process_html(html_file,minify=True)
     print("HTML processing completed with modules converted to IIFE.")
+    
     os.chdir("/private/var/mobile/Containers/Data/Application/77881549-3FA6-4E4B-803F-D53B172FC865/Documents/www")
     html_file = "webgl-3d-camera-look-at-heads.html"
     process_html(html_file,minify=True)
     print("HTML processing completed with modules converted to IIFE.")
-    os.chdir('/private/var/mobile/Containers/Data/Application/96AB3274-100A-4277-AF11-30E364682823/Documents/Turtle')
-    html_file = "index.html"
-    process_html(html_file,minify=True)
-    print("HTML processing completed with modules converted to IIFE.")
+
     t2=perf_counter()
     print(f'{t2-t1=}')
     
