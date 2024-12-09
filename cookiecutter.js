@@ -1,4 +1,4 @@
-import {debugLog} from "./logging.js";
+//import {debugLog} from "./logging.js";
 import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle.js';
 import {cookiecutters} from './outline-data.js';
 import {stringifyFormatted} from "./json_utils.js";
@@ -57,7 +57,7 @@ function drawSelectedOutline(e) {
     if (key===undefined) return;
 	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);
 	let scale=Math.sqrt(cookieCutterArea/a);
-	debugLog("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
+	console.log("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
 	let a0=[1,0];
 	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];
     plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale*5});
@@ -107,9 +107,13 @@ const controls=VBox([downloadBtn, uploadOutlinesFile,
 				 
 export const title="cookie-cutter";
 
-export function createPaneContent(options={}){
-	let landscape=options.landscape || true;
-	return landscape ? HBox([controls,canvasContainer]) : VBox([canvasContainer,controls])
+export function createPaneContent({landscape=true}){
+	if (landscape){
+		return HBox([controls,canvasContainer]);
+	}
+	else{
+		return VBox([canvasContainer,controls]);
+	}
 }
 
 const myDefault={title:title,content:createPaneContent};

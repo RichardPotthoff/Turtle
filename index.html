@@ -193,6 +193,30 @@
 		
 
 }
+#console-output div {
+    font-family: monospace;
+    white-space: pre;
+}
+
+#console-output div:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+/*
+#console-output div {
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#console-output div:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+*/
+#console-output div::before {
+    content: attr(class); /* This assumes you've added classes for log types */
+    margin-right: 10px;
+    color: grey;
+}
 </style>
 </head>
 <body>

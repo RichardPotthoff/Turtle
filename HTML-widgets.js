@@ -60,8 +60,9 @@ export function FloatSlider(options = {}) {
     return input;
 }
 
-export function Button(description, onClick) {
+export function Button(description, onClick,options={}) {
     let button = document.createElement('button');
+	Object.assign(button.style,options.style);
     button.textContent = description;
     button.className = 'button-style'; // Add this line to apply the CSS class
     button.addEventListener('click', onClick);
@@ -330,8 +331,8 @@ export function Canvas(options = {}) {
 
 export function OutputText(options = {}) {
     let div = document.createElement('div');
-    div.className = 'output-text';
-    
+    div.className =  'output-text';
+    if (options.id) div.id=options.id;
     div.style.overflowY = 'auto';
     div.style.maxHeight = options.maxHeight || '500px';
     div.style.maxHeight = options.maxHeight;

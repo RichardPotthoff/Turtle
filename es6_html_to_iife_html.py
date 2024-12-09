@@ -183,6 +183,7 @@ if __name__ == "__main__":
 #    raise Exception
     from time import perf_counter
     t1=perf_counter()
+    print(os.getcwd())
     os.chdir('../widgets')
     html_file = "index.html"
     process_html(html_file,minify=True)
@@ -191,7 +192,7 @@ if __name__ == "__main__":
     html_file = "webgl-3d-camera-look-at-heads.html"
     process_html(html_file,minify=True)
     print("HTML processing completed with modules converted to IIFE.")
-    os.chdir('/private/var/mobile/Containers/Data/Application/BE7DE533-3951-4E82-8625-B8A91389012F/Documents/Turtle')
+    os.chdir('/private/var/mobile/Containers/Data/Application/96AB3274-100A-4277-AF11-30E364682823/Documents/Turtle')
     html_file = "index.html"
     process_html(html_file,minify=True)
     print("HTML processing completed with modules converted to IIFE.")
