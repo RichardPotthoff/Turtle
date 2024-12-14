@@ -22,7 +22,7 @@ outlineSelector.updateOptions(Object.entries(outlines).map(([k2, v2]) => ({
 
 function readSingleFile(e) {
   var file = e.target.files[0];
-  debugLog("file= "+file)
+  console.log("file= "+file)
   if (!file) {
     return;
   }
