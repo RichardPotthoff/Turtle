@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arc Chain Plotter</title>
+	
+<style>
+    canvas { 
+		
+        background: lightgray;  /* Or any contrasting color */
+        border: 1px solid black;
+    }
+    
+    /* Basic styles for layout */
+    .hbox, .vbox, .box { display: flex; }
+    .hbox { flex-direction: row; }
+    .vbox { flex-direction: column; }
+    .slider { width: 200px; height: 20px; } /* Corrected to horizontal sliders by default */
+    
+
+	html, body {
+	    margin: 0;
+	    padding: 0;
+	    height: 100%;
+	    width: 100%;
+	    overflow: hidden; /* Prevents scrollbars on body */
+	}
+	
+	/* Uniform button styling */
+    .button-style, .tab-header, .custom-file-input button, .dropdown-button {
+        background-color: #f1f1f1;
+        border: 1px solid #ddd;
+        color: #333;
+        font-size: 14px;
+        padding: 6px 12px;
+        margin: 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .button-style:hover, .tab-header:hover, .custom-file-input button:hover, .dropdown-button:hover {
+        background-color: #e0e0e0;
+        color: #000;
+    }
+
+	.tab-widget {
+	    height: 100%;
+	    width: 100%;
+	    display: flex;
+	    flex-direction: column;
+	    box-sizing: border-box;
+	}
+	
+	.tab-headers {
+	    flex-shrink: 0;
+	    display: flex;
+	    border-bottom: 1px solid #ccc;
+	    padding: 2px; /* Adjust if necessary for spacing */
+	}
+	
+	.tab-header {
+	    padding: 10px 20px;
+	    /* Remove or adjust margins if they cause spacing issues */
+	    background-color: #f1f1f1;
+	    border: none;
+	    outline: none;
+	    cursor: pointer;
+	    transition: 0.3s;
+	    /* This will make sure the tab headers don't wrap */
+	    white-space: nowrap;
+	    overflow: hidden;
+	    text-overflow: ellipsis;
+	}
+	
+	.tab-header.active {
+	    background-color: #ccc;
+	}
+	
+	.tab-content {
+	    flex-grow: 1;
+	    display: flex; /* This allows children to grow to fill container */
+	}
+	
+	.tab-pane {
+	    flex: 1 1 auto; /* Flex grow and shrink as needed */
+	    padding: 10px;
+	    border: 1px solid #999;
+	    /* Remove height: 100% to let flex do its work */
+	    overflow-y: auto; /* Keep this for scrollable content */
+	    display: none;
+	    animation: fadeEffect 1s;
+	}  
+	
+	.tab-pane {
+ 	   display: flex;
+//   	   flex-direction: column;
+	}
+	.tab-pane .controls {
+	    position: absolute;
+	    bottom: 10px; /* Adjust as needed */
+	    left: 10px; /* Adjust as needed */
+	    z-index: 1000; /* Ensure it's on top */
+	}
+	.tab-pane {
+        overflow-y: auto;
+    }
+    /* Specific to Custom File Input */
+    .custom-file-input {
+        display: flex;
+        align-items: center;
+    }
+
+    .custom-file-input span {
+        font-style: italic;
+        color: #777;
+        margin-left: 10px; /* Removed this from the button style */
+    }
+
+    /* Specific to Dropdown */
+    .custom-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-button {
+        width: 200px;
+        text-align: left;
+        position: relative;
+    }
+
+    .dropdown-button::after {
+        content: "\25BC"; /* Down arrow */
+        float: right;
+        margin-left: 5px;
+    }
+
+    .dropdown-list {
+        position: absolute;
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        border: 1px solid #ddd;
+        background: #ffffff;
+        width: 200px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+
+    .dropdown-list li {
+        padding: 10px;
+		border: 1px solid #ddd;
+        cursor: pointer;
+    }
+
+    .dropdown-list li:hover {
+        background: #f5f5f5;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    @keyframes fadeEffect {
+        from {opacity: 0;}
+        to {opacity: 1;}
+    }
+
+    #myCanvas {
+        touch-action: none;
+    }
+	#myCanvas {
+        position: relative; /* or adjust to absolute if needed */
+        z-index: 1; /* Lower than the controls */
+    }
+
+}
+
+
+    /* For portrait */
+	@media (orientation: portrait) {
+		
+	    .tab-widget {
+	        height: 100vh;
+	        width: 100vw;
+	    }
+	    .tab-content {
+	        height: calc(100vh - 40px); /* Assuming tab headers take 40px in height */
+	    }
+
+		
+
+}
+#console-output div {
+    font-family: monospace;
+    white-space: pre;
+}
+
+#console-output div:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+/*
+#console-output div {
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#console-output div:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+*/
+#console-output div::before {
+    content: attr(class); /* This assumes you've added classes for log types */
+    margin-right: 10px;
+    color: grey;
+}
+</style>
+</head>
+<body>
+<div id="tabsContainer"></div>
+<script>
+"use strict";
+const deg=Math.PI/180;
+const rad2deg=1/deg;
+</script>
+
+<script>
+function formatFloat(num, decimalPlaces) {
+  return num.toFixed(decimalPlaces);
+}
+
+function deepCopyArray(arr) {
+    return arr.map(item => Array.isArray(item) ? deepCopyArray(item) : item);
+}
+    </script>
+<script id="main" src="./Turtle.js" type="module"></script> 
+</body>
+</html>

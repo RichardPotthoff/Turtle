@@ -36,7 +36,7 @@ function copyToClipboard(text) {
 
 function downloadApplication() {
 	const link = document.createElement('a');
-        link.href ="https://richardpotthoff.github.io/Turtle/output.html";
+        link.href ="./Turtle.html";
         link.download = "Turtle.html";
         link.click();
 };

@@ -132,7 +132,7 @@ def gather_dependencies(content, processed_modules, dependencies, in_process=Non
       in_process.remove(module_filename)
     return dependency_content + converted
 
-def process_html(html_path,minify=False):
+def process_html(html_path,minify=False,output_file='output.html'):
     with open(html_path, 'r') as file:
         soup = BeautifulSoup(file, 'html.parser')
     
@@ -174,7 +174,7 @@ def process_html(html_path,minify=False):
                 if minify:
                    script.string=minify_javascript(script.string)
 
-    with open('output.html', 'w') as file:
+    with open(output_file, 'w') as file:
         file.write(str(soup))
 
 if __name__ == "__main__":
@@ -185,8 +185,8 @@ if __name__ == "__main__":
     t1=perf_counter()
     print(os.getcwd())
     
-    html_file = "index.html"
-    process_html(html_file,minify=True)
+    html_file = "Turtle.html"
+    process_html(html_file,minify=True,output_file='index.html')
     print("HTML processing completed with modules converted to IIFE.")
     
     os.chdir("/private/var/mobile/Containers/Data/Application/77881549-3FA6-4E4B-803F-D53B172FC865/Documents/www")

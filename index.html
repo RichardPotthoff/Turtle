@@ -1,241 +1,94 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arc Chain Plotter</title>
-	
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Arc Chain Plotter</title>
 <style>
-    canvas { 
-		
-        background: lightgray;  /* Or any contrasting color */
-        border: 1px solid black;
-    }
-    
-    /* Basic styles for layout */
-    .hbox, .vbox, .box { display: flex; }
-    .hbox { flex-direction: row; }
-    .vbox { flex-direction: column; }
-    .slider { width: 200px; height: 20px; } /* Corrected to horizontal sliders by default */
-    
-
-	html, body {
-	    margin: 0;
-	    padding: 0;
-	    height: 100%;
-	    width: 100%;
-	    overflow: hidden; /* Prevents scrollbars on body */
-	}
-	
-	/* Uniform button styling */
-    .button-style, .tab-header, .custom-file-input button, .dropdown-button {
-        background-color: #f1f1f1;
-        border: 1px solid #ddd;
-        color: #333;
-        font-size: 14px;
-        padding: 6px 12px;
-        margin: 2px;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background-color 0.3s, color 0.3s;
-    }
-
-    .button-style:hover, .tab-header:hover, .custom-file-input button:hover, .dropdown-button:hover {
-        background-color: #e0e0e0;
-        color: #000;
-    }
-
-	.tab-widget {
-	    height: 100%;
-	    width: 100%;
-	    display: flex;
-	    flex-direction: column;
-	    box-sizing: border-box;
-	}
-	
-	.tab-headers {
-	    flex-shrink: 0;
-	    display: flex;
-	    border-bottom: 1px solid #ccc;
-	    padding: 2px; /* Adjust if necessary for spacing */
-	}
-	
-	.tab-header {
-	    padding: 10px 20px;
-	    /* Remove or adjust margins if they cause spacing issues */
-	    background-color: #f1f1f1;
-	    border: none;
-	    outline: none;
-	    cursor: pointer;
-	    transition: 0.3s;
-	    /* This will make sure the tab headers don't wrap */
-	    white-space: nowrap;
-	    overflow: hidden;
-	    text-overflow: ellipsis;
-	}
-	
-	.tab-header.active {
-	    background-color: #ccc;
-	}
-	
-	.tab-content {
-	    flex-grow: 1;
-	    display: flex; /* This allows children to grow to fill container */
-	}
-	
-	.tab-pane {
-	    flex: 1 1 auto; /* Flex grow and shrink as needed */
-	    padding: 10px;
-	    border: 1px solid #999;
-	    /* Remove height: 100% to let flex do its work */
-	    overflow-y: auto; /* Keep this for scrollable content */
-	    display: none;
-	    animation: fadeEffect 1s;
-	}  
-	
-	.tab-pane {
- 	   display: flex;
-//   	   flex-direction: column;
-	}
-	.tab-pane .controls {
-	    position: absolute;
-	    bottom: 10px; /* Adjust as needed */
-	    left: 10px; /* Adjust as needed */
-	    z-index: 1000; /* Ensure it's on top */
-	}
-	.tab-pane {
-        overflow-y: auto;
-    }
-    /* Specific to Custom File Input */
-    .custom-file-input {
-        display: flex;
-        align-items: center;
-    }
-
-    .custom-file-input span {
-        font-style: italic;
-        color: #777;
-        margin-left: 10px; /* Removed this from the button style */
-    }
-
-    /* Specific to Dropdown */
-    .custom-dropdown {
-        position: relative;
-        display: inline-block;
-    }
-
-    .dropdown-button {
-        width: 200px;
-        text-align: left;
-        position: relative;
-    }
-
-    .dropdown-button::after {
-        content: "\25BC"; /* Down arrow */
-        float: right;
-        margin-left: 5px;
-    }
-
-    .dropdown-list {
-        position: absolute;
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-        border: 1px solid #ddd;
-        background: #ffffff;
-        width: 200px;
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000;
-    }
-
-    .dropdown-list li {
-        padding: 10px;
-		border: 1px solid #ddd;
-        cursor: pointer;
-    }
-
-    .dropdown-list li:hover {
-        background: #f5f5f5;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    @keyframes fadeEffect {
-        from {opacity: 0;}
-        to {opacity: 1;}
-    }
-
-    #myCanvas {
-        touch-action: none;
-    }
-	#myCanvas {
-        position: relative; /* or adjust to absolute if needed */
-        z-index: 1; /* Lower than the controls */
-    }
-
-}
-
-
-    /* For portrait */
-	@media (orientation: portrait) {
-		
-	    .tab-widget {
-	        height: 100vh;
-	        width: 100vw;
-	    }
-	    .tab-content {
-	        height: calc(100vh - 40px); /* Assuming tab headers take 40px in height */
-	    }
-
-		
-
-}
-#console-output div {
-    font-family: monospace;
-    white-space: pre;
-}
-
-#console-output div:nth-child(odd) {
-    background-color: #f9f9f9;
-}
-/*
-#console-output div {
-    font-family: monospace;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-#console-output div:nth-child(odd) {
-    background-color: #f9f9f9;
-}
-*/
-#console-output div::before {
-    content: attr(class); /* This assumes you've added classes for log types */
-    margin-right: 10px;
-    color: grey;
-}
+canvas{background:lightgray;border:1px solid black;}.hbox,.vbox,.box{display:flex;}.hbox{flex-direction:row;}.vbox{flex-direction:column;}.slider{width:200px;height:20px;}html,body{margin:0;padding:0;height:100%;width:100%;overflow:hidden;}.button-style,.tab-header,.custom-file-input button,.dropdown-button{background-color:#f1f1f1;border:1px solid #ddd;color:#333;font-size:14px;padding:6px 12px;margin:2px;cursor:pointer;border-radius:4px;transition:background-color 0.3s,color 0.3s;}.button-style:hover,.tab-header:hover,.custom-file-input button:hover,.dropdown-button:hover{background-color:#e0e0e0;color:#000;}.tab-widget{height:100%;width:100%;display:flex;flex-direction:column;box-sizing:border-box;}.tab-headers{flex-shrink:0;display:flex;border-bottom:1px solid #ccc;padding:2px;}.tab-header{padding:10px 20px;background-color:#f1f1f1;border:none;outline:none;cursor:pointer;transition:0.3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.tab-header.active{background-color:#ccc;}.tab-content{flex-grow:1;display:flex;}.tab-pane{flex:1 1 auto;padding:10px;border:1px solid #999;overflow-y:auto;display:none;animation:fadeEffect 1s;}.tab-pane{display:flex;}.tab-pane.controls{position:absolute;bottom:10px;left:10px;z-index:1000;}.tab-pane{overflow-y:auto;}.custom-file-input{display:flex;align-items:center;}.custom-file-input span{font-style:italic;color:#777;margin-left:10px;}.custom-dropdown{position:relative;display:inline-block;}.dropdown-button{width:200px;text-align:left;position:relative;}.dropdown-button::after{content:"\25BC";float:right;margin-left:5px;}.dropdown-list{position:absolute;list-style-type:none;padding:0;margin:0;border:1px solid #ddd;background:#ffffff;width:200px;max-height:200px;overflow-y:auto;z-index:1000;}.dropdown-list li{padding:10px;border:1px solid #ddd;cursor:pointer;}.dropdown-list li:hover{background:#f5f5f5;}.hidden{display:none;}
+@keyframes fadeEffect{from{opacity:0;}
+to{opacity:1;}}
+#myCanvas{touch-action:none;}
+#myCanvas{position:relative;z-index:1;}}@media(orientation:portrait){.tab-widget{height:100vh;width:100vw;}.tab-content{height:calc(100vh-40px);}}
+#console-output div{font-family:monospace;white-space:pre;}
+#console-output div:nth-child(odd){background-color:#f9f9f9;}#console-output div::before{content:attr(class);margin-right:10px;color:grey;}
 </style>
 </head>
 <body>
 <div id="tabsContainer"></div>
 <script>
-"use strict";
-const deg=Math.PI/180;
-const rad2deg=1/deg;
-</script>
-
+"use strict";const deg=Math.PI/180;const rad2deg=1/deg;</script>
 <script>
-function formatFloat(num, decimalPlaces) {
-  return num.toFixed(decimalPlaces);
-}
-
-function deepCopyArray(arr) {
-    return arr.map(item => Array.isArray(item) ? deepCopyArray(item) : item);
-}
-    </script>
-<script id="main" src="./index.js" type="module"></script> 
+function formatFloat(num,decimalPlaces){return num.toFixed(decimalPlaces);}
+function deepCopyArray(arr){return arr.map(item=>Array.isArray(item)?deepCopyArray(item):item);}
+</script>
+<script id="main" type="text/javascript">(function(global){function createBox(className,children,options={}){let box=document.createElement('div');box.className=className;if(options.attributes){for(let[key,value] of Object.entries(options.attributes)){box.setAttribute(key,value);}}
+if(options.style){Object.assign(box.style,options.style);}
+if(options.childrenOptions){children.forEach((child,index)=>{if(options.childrenOptions[index]){Object.assign(child,options.childrenOptions[index]);}});}
+children.forEach(child=>{box.appendChild(child);});return box;}
+function Box(children,options={}){return createBox('box',children,options);}
+function VBox(children,options={}){return createBox('vbox',children,options);}
+function HBox(children,options={}){return createBox('hbox',children,options);}
+function FloatSlider(options={}){let input=document.createElement('input');input.type='range';input.className=options.orientation==='vertical'?'slider-vertical':'slider';input.min=options.min||0;input.max=options.max||100;input.value=options.value||50;input.step=options.step||1;if(options.onChange){input.addEventListener('input',option.onChange);};return input;}
+function Button(description,onClick,options={}){let button=document.createElement('button');Object.assign(button.style,options.style);button.textContent=description;button.className='button-style';button.addEventListener('click',onClick);return button;}
+function FileInput({accept='*',multiple=false,onChange,dataset={}}){let fileInputContainer=document.createElement('div');fileInputContainer.className='custom-file-input';let fileInput=document.createElement('input');fileInput.type='file';fileInput.accept=accept;fileInput.multiple=multiple;fileInput.style.display='none';for(let key in dataset){fileInput.dataset[key]=dataset[key];}
+let fileButton=document.createElement('button');fileButton.textContent=multiple?'Choose Files':'Choose File';fileButton.addEventListener('click',()=>fileInput.click());let fileDisplay=document.createElement('span');fileDisplay.className='file-display';fileDisplay.textContent=multiple?'No files chosen':'No file chosen';fileDisplay.style.marginLeft='10px';fileInputContainer.appendChild(fileButton);fileInputContainer.appendChild(fileDisplay);fileInputContainer.appendChild(fileInput);fileInput.addEventListener('change',(e)=>{if(onChange){onChange(e);}
+let fileName;if(multiple){fileName=Array.from(e.target.files).map(file=>file.name).join(', ');} else{fileName=e.target.files[0]?e.target.files[0].name:'No file chosen';}
+fileDisplay.textContent=fileName||(multiple?'No files chosen':'No file chosen');if(multiple){e.target.value='';}});return fileInputContainer;}
+function Dropdown(options=[],onSelect){let container=document.createElement('div');container.className='custom-dropdown';let dropdownButton=document.createElement('button');dropdownButton.className='dropdown-button';dropdownButton.textContent=options.length>0?options[0].text:'Select an option';container.appendChild(dropdownButton);let dropdownList=document.createElement('ul');dropdownList.className='dropdown-list hidden';container.appendChild(dropdownList);function createOption(option){let listItem=document.createElement('li');listItem.textContent=option.text;listItem.dataset.value=option.value;listItem.addEventListener('click',(e)=>{e.preventDefault();dropdownButton.textContent=option.text;triggerChangeEvent(option.value);dropdownList.classList.add('hidden');});return listItem;}
+function triggerChangeEvent(newValue){dropdownButton.dataset.value=newValue;if(onSelect){onSelect({type:'change',target:{value:newValue,textContent:dropdownButton.textContent,container:container},currentTarget:container});}}
+container.addOption=function(option){let listItem=createOption(option);dropdownList.appendChild(listItem);if(dropdownList.children.length===1){dropdownButton.textContent=option.text;triggerChangeEvent(option.value);}};container.removeOption=function(optionTextOrValue){let optionToRemove=Array.from(dropdownList.children).find(li=>li.textContent===optionTextOrValue||li.dataset.value===optionTextOrValue);if(optionToRemove){dropdownList.removeChild(optionToRemove);if(optionToRemove.textContent===dropdownButton.textContent||dropdownList.childElementCount===0){dropdownButton.textContent=dropdownList.childElementCount===0?'Select an option':dropdownList.firstElementChild.textContent;triggerChangeEvent(dropdownList.childElementCount===0?undefined:dropdownList.firstElementChild.dataset.value);}}};container.updateOptions=function(newOptions){const currentValue=dropdownButton.dataset.value;let newSelectedValue=newOptions[0]?newOptions[0].value:null;dropdownList.innerHTML='';newOptions.forEach(option=>this.addOption(option));if(newOptions.length>0){dropdownButton.textContent=newOptions[0].text;newSelectedValue=newOptions[0].value;} else{dropdownButton.textContent='Select an option';}
+if(currentValue !==newSelectedValue){triggerChangeEvent(newSelectedValue);}};options.forEach(option=>container.addOption(option));dropdownButton.addEventListener('click',(event)=>{event.stopPropagation();dropdownList.classList.toggle('hidden');});document.addEventListener('click',(event)=>{if(!container.contains(event.target)&&!dropdownList.classList.contains('hidden')){dropdownList.classList.add('hidden');}});return container;}
+function Tab(panes,options={}){let tabContainer=document.createElement('div');tabContainer.className='tab-widget';let tabHeaders=document.createElement('div');tabHeaders.className='tab-headers';tabContainer.appendChild(tabHeaders);let paneContainer=document.createElement('div');paneContainer.className='tab-content';tabContainer.appendChild(paneContainer);let paneContents=panes.map(pane=>pane.content);panes.forEach((pane,index)=>{let header=document.createElement('button');header.className='tab-header';header.textContent=pane.title;header.addEventListener('click',()=>showTab(index));tabHeaders.appendChild(header);let content=document.createElement('div');content.className='tab-pane';content.style.display=index===0?'block':'none';content.appendChild(pane.content);paneContainer.appendChild(content);});function showTab(index){Array.from(paneContainer.children).forEach((pane,i)=>{pane.style.display=i===index?'block':'none';});Array.from(tabHeaders.children).forEach((header,i)=>{header.classList.toggle('active',i===index);});}
+tabContainer.showTab=showTab;function updateTabContent(index,newContent){if(index>=0&&index<paneContainer.children.length){let contentDiv=paneContainer.children[index];while(contentDiv.firstChild){contentDiv.removeChild(contentDiv.firstChild);}
+contentDiv.appendChild(newContent);}}
+tabContainer.updateTabContent=updateTabContent;if(options.initialTab !==undefined&&options.initialTab>=0&&options.initialTab<panes.length){showTab(options.initialTab);}
+function adjustLayout(){const clientHeight=document.documentElement.clientHeight||document.body.clientHeight;const clientWidth=document.documentElement.clientWidth||document.body.clientWidth;tabContainer.style.height=clientHeight+'px';tabContainer.style.width=clientWidth+'px';}
+window.addEventListener('resize',adjustLayout);adjustLayout();return tabContainer;}
+function Canvas(options={}){let canvas=document.createElement('canvas');canvas.width=options.width||300;canvas.height=options.height||300;let ctx=canvas.getContext('2d');canvas.onDraw=()=>(options.onDraw||function(ctx){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#D3D3D3';ctx.fillRect(0,0,canvas.width,canvas.height);})(ctx);return canvas;}
+function OutputText(options={}){let div=document.createElement('div');div.className='output-text';if(options.id) div.id=options.id;div.style.overflowY='auto';div.style.maxHeight=options.maxHeight||'500px';div.style.maxHeight=options.maxHeight;div.appendText=function(text){let p=document.createElement('p');p.textContent=text;div.appendChild(p);if(div.children.length>(options.maxLines||500)){div.removeChild(div.firstChild);}
+if(isAnyParentHidden(div)){if(!div.observer){div.observer=new IntersectionObserver(entries=>{if(entries[0].isIntersecting){div.scrollTop=div.scrollHeight;div.observer.disconnect();delete div.observer;}},{threshold:1});div.observer.observe(div);}} else{div.scrollTop=div.scrollHeight;}};return div;}
+function isAnyParentHidden(element){let parent=element;while(parent){let style=window.getComputedStyle(parent);if(style.display==='none'||style.visibility==='hidden'||style.opacity==='0'){return true;}
+parent=parent.parentElement;}
+return false;}
+if(!("modules" in global)){global["modules"]={}}
+global.modules["HTML-widgets.js"]={Box:Box,VBox:VBox,HBox:HBox,FloatSlider:FloatSlider,Button:Button,FileInput:FileInput,Dropdown:Dropdown,Tab:Tab,Canvas:Canvas,OutputText:OutputText};})(window);(function(global){function hookConsoleMethod(method){const original=console[method];console[method]=function(...args){original.apply(console,args);const logElement=document.getElementById('console-output');if(logElement){let message=args.map(arg=>{return typeof arg==='object'?JSON.stringify(arg,null,2):arg}).join(' ');logElement.innerHTML+=`<div>[${method.toUpperCase()}] ${message}</ div>`;}}}['log','error','warn','info'].forEach(hookConsoleMethod);})(window);(function(global){function TurtlePathLengthArea(TurtlePath){let totalLength=0;let totalArea=0;let firstMoment=[0,0];let arcStartPoint=[0,0];let arcStartAngle=0;let arcEndAngle=0;for(let[arcLength,arcAngle] of TurtlePath){const halfArcAngle=arcAngle/2;const chordAngle=arcStartAngle+halfArcAngle;const cosChordAngle=Math.cos(chordAngle);const sinChordAngle=Math.sin(chordAngle);totalLength+=arcLength;let chordLength;if(arcAngle !==0){if(arcLength !==0){const radius=arcLength/arcAngle;const sinHalfArcAngle=Math.sin(halfArcAngle);chordLength=radius*sinHalfArcAngle*2;const arcSegmentArea=0.5*radius**2*(arcAngle-Math.sin(arcAngle));const y_a=(2/3)*(radius*sinHalfArcAngle)**3;totalArea+=arcSegmentArea;firstMoment[0]+=arcSegmentArea*(arcStartPoint[0]-radius*Math.sin(arcStartAngle))+y_a*sinChordAngle;firstMoment[1]+=arcSegmentArea*(arcStartPoint[1]+radius*Math.cos(arcStartAngle))-y_a*cosChordAngle;} else{chordLength=0;}} else{chordLength=arcLength;}
+const arcEndPoint=[arcStartPoint[0]+chordLength*cosChordAngle,arcStartPoint[1]+chordLength*sinChordAngle];arcEndAngle=arcStartAngle+arcAngle;const triangleArea=(arcStartPoint[0]*arcEndPoint[1]-arcEndPoint[0]*arcStartPoint[1])/2;totalArea+=triangleArea;firstMoment[0]+=triangleArea*(arcStartPoint[0]+arcEndPoint[0])/3;firstMoment[1]+=triangleArea*(arcStartPoint[1]+arcEndPoint[1])/3;arcStartPoint=arcEndPoint;arcStartAngle=arcEndAngle;}
+const centroid=[firstMoment[0]/totalArea,firstMoment[1]/totalArea];return[totalLength,totalArea,arcStartPoint,arcEndAngle,centroid];}
+function SegmentsLengthArea(Segs){let l=0;let area=0;let prevPoint=[0,0];let prevAngle=0;for(let i=0;i<Segs.length;i++){let[dl,dang]=Segs[i];let dang_2=dang/2;l+=dl;let chordLength;if(dang !==0){let r=dl/dang;chordLength=r*Math.sin(dang_2)*2;let correction=0.5*r*r*(dang-Math.sin(dang));area+=correction;} else{chordLength=dl;}
+let currentPoint=[prevPoint[0]+chordLength*Math.cos(prevAngle+dang_2),prevPoint[1]+chordLength*Math.sin(prevAngle+dang_2)];area+=(prevPoint[0]*currentPoint[1]-currentPoint[0]*prevPoint[1])/2;prevPoint=currentPoint;prevAngle+=dang;}
+return[l,Math.abs(area),prevPoint,prevAngle];}
+function*Segments2Complex({p0_a0_segs=[[[0,0],[1,0]],[]],scale=1.0,tol=0.05,offs=0,loops=1,return_start=false}){const[p0,a0]=p0_a0_segs[0];const Segs=p0_a0_segs[1];let a=a0.slice();let p=p0.slice();p[0]=p[0]-a[0]*offs;p[1]=p[1]-a[1]*offs;let L=0;if(return_start){yield{point:p,angle:a,length:L,segmentIndex:-1};}
+let loopcount=0;while(loops===null||loops===Infinity||loopcount<loops){loopcount++;for(let X=0;X<Segs.length;X++){let[l,da,..._]=Segs[X];l*=scale;let n;let v;let dda;if(da !==0){let r=l/da;r+=offs;if(r !==0){l=r*da;let dl=2*Math.sqrt(2*Math.abs(r)*tol);n=Math.max(Math.ceil(6*Math.abs(da/(2*Math.PI))),Math.floor(l/dl)+1);let dda2=[Math.cos(0.5*da/n),Math.sin(0.5*da/n)];v=[2*r*dda2[1]*dda2[0],2*r*dda2[1]*dda2[1]];v=[v[0]*a[0]-v[1]*a[1],v[0]*a[1]+v[1]*a[0]];} else{n=1;v=[0,0];}
+dda=[Math.cos(da/n),Math.sin(da/n)];for(let i=0;i<n;i++){L+=l/n;p[0]+=v[0];p[1]+=v[1];a=[a[0]*dda[0]-a[1]*dda[1],a[0]*dda[1]+a[1]*dda[0]];yield{point:p.slice(),angle:a,length:L,segmentIndex:X};v=[v[0]*dda[0]-v[1]*dda[1],v[0]*dda[1]+v[1]*dda[0]];}} else{n=1;L+=l;p[0]+=l*a[0];p[1]+=l*a[1];yield{point:p.slice(),angle:a,length:L,segmentIndex:X};}}}}
+function plot_segments(ctx,{p0=[0,0],a0=[1,0],segs=[],scale=1.0,tol=0.05,offs=0,loops=1,return_start=true}={}){let gen=Segments2Complex({p0_a0_segs:[[p0,a0],segs],scale:scale,tol:tol,offs:0,loops:loops,return_start:return_start});ctx.beginPath();let{value:{point,angle:[cos_ang,sin_ang]}}=gen.next();ctx.moveTo(point[0]-offs*sin_ang,point[1]+offs*cos_ang);for(let{point,angle:[cos_ang,sin_ang]} of gen){ctx.lineTo(point[0]-offs*sin_ang,point[1]+offs*cos_ang);}
+ctx.stroke()}
+if(!("modules" in global)){global["modules"]={}}
+global.modules["turtle-graphics.js"]={TurtlePathLengthArea:TurtlePathLengthArea,SegmentsLengthArea:SegmentsLengthArea,plot_segments:plot_segments};})(window);(function(global){const cookiecutters={"outlines":{"Star":{"turtlePath":[[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0],[2,-58.0],[8,0.0],[3.2,130.0],[8,0.0]]},"Plain":{"turtlePath":[[50,360.0]]},"Scalloped":{"turtlePath":[[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0],[1.0,-110.0],[2,150.0]]},"Heart":{"turtlePath":[[0.45,-45.0],[10.0,180.0],[6.91,-10.0],[1.1,110.0],[6.91,-10.0],[10.0,180.0],[0.45,-45.0]]},"Duck":{"turtlePath":[[0.4,-10.0],[13.297,25.0],[3,-80.0],[4,160.0],[22.913,90.0],[15,90.0],[5,-90.0],[5,20.0],[3,170.0],[2,-20.0],[3,-90.0],[15,220.0],[5,-125.0]]},"Tree":{"turtlePath":[[0.75,40.0],[3,0.0],[1.5,140.0],[0.6,0.0],[1.0,-140.0],[3,0.0],[1.5,140.0],[0.6,0.0],[1.0,-140.0],[3,0.0],[1.5,140.0],[0.6,0.0],[1.0,-140.0],[3,0.0],[1.5,140.0],[11.431,0.0],[1.5,140.0],[3,0.0],[1.0,-140.0],[0.6,0.0],[1.5,140.0],[3,0.0],[1.0,-140.0],[0.6,0.0],[1.5,140.0],[3,0.0],[1.0,-140.0],[0.6,0.0],[1.5,140.0],[3,0.0],[0.75,40.0]]},"L":{"turtlePath":[[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,90],[8,0],[0,-90],[16,0],[0,90],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[8,0],[0,-180],[8,0],[0,90],[4,0],[0,90],[16,0],[0,-180],[16,0],[0,90],[4,0],[0,90],[4,0],[0,90],[24,0],[0,-180],[24,0],[0,90],[4,0],[0,90],[8,0],[0,-180]]}},"brickworks":{"centered":[[[-0.45,0.9],[-1.35,0.9],[0.45,0.9],[1.35,0.9]],[[-0.8,0.8],[-1.6,0.8],[0.8,0.8],[1.6,0.8],[0.0,0.8]],[[-1.1,0.733],[-1.833,0.733],[1.1,0.733],[1.833,0.733],[-0.367,0.733],[0.367,0.733]],[[-0.92,0.92],[-1.84,0.92],[0.92,0.92],[1.84,0.92],[0.0,0.92]],[[0.0,1.0],[-1.9,1.0],[1.9,1.0]],[[0.0,0.8],[-2.0,1.0],[2.0,1.0]],[[0.0,0.6],[-2.05,0.9],[2.05,0.9]],[[0.0,0.5],[-2.05,0.9],[2.05,0.9]],[[0.0,0.5],[-2.05,0.9],[2.05,0.9]],[[0.0,0.5],[-1.95,0.9],[1.95,0.9]],[[0.0,0.5],[-1.85,0.9],[1.85,0.9]],[[0.0,0.5],[-1.7,1.0],[1.7,1.0]],[[0.0,0.5],[-1.5,1.0],[1.5,1.0]],[[0.0,0.5],[-1.3,1.0],[1.3,1.0]],[[0.0,0.5],[-1.1,1.0],[1.1,1.0]],[[0.0,0.5],[-0.9,1.0],[0.9,1.0]],[[0.0,0.6],[-0.75,0.9],[0.75,0.9]],[[-0.5,1.0],[0.5,1.0]],[[-0.533,0.533],[-0.0,0.533],[0.533,0.533]],[[-0.3,0.6],[0.3,0.6]]]}};if(!("modules" in global)){global["modules"]={}}
+global.modules["outline-data.js"]={cookiecutters:cookiecutters};})(window);(function(global){function stringifyFormatted(data,initialIndent=2,maxIndentLevel=2){const maxIndent=initialIndent*maxIndentLevel;let jsonString=JSON.stringify(data,null,initialIndent);let result='';let lines=jsonString.split('\n');let previousLine='';for(let i=0;i<lines.length;i++){let line=lines[i];let trimmedLine=line.trim();let indent=line.match(/^\s*/)[0].length;if(indent<maxIndent||(indent===maxIndent&&(trimmedLine.startsWith('[')||trimmedLine.startsWith('{')))){if(previousLine !==''){result+=previousLine+'\n';}
+previousLine=line;} else{if(previousLine !==''){result+=previousLine+' ';}
+previousLine=trimmedLine;}
+if(i===lines.length-1&&previousLine !==''){result+=previousLine;}}
+return result;}
+if(!("modules" in global)){global["modules"]={}}
+global.modules["json_utils.js"]={stringifyFormatted:stringifyFormatted};})(window);(function(global){let{plot_segments,SegmentsLengthArea,TurtlePathLengthArea}=modules["turtle-graphics.js"];let{cookiecutters}=modules["outline-data.js"];let{stringifyFormatted}=modules["json_utils.js"];let{outlines,brickworks}=JSON.parse(JSON.stringify(cookiecutters));let cookieCutterArea=2000;function updateOutlineSelector(){Object.entries(outlines).forEach(([k2,v2])=>{v2["turtlePath"].forEach((x)=>{x[1]*=deg;});});outlineSelector.updateOptions(Object.entries(outlines).map(([k2,v2])=>({text:k2,value:k2})));};function readSingleFile(e){var file=e.target.files[0];console.log("file= "+file)
+if(!file){return;}
+var reader=new FileReader();reader.onload=function(e){var contents=e.target.result;let decodedContents=JSON.parse(contents);outlines=decodedContents["outlines"];updateOutlineSelector();brickworks=decodedContents["brickworks"];};reader.readAsText(file);}
+function displayContents(contents){var element=document.getElementById('file-content');element.textContent=contents;}
+function drawSelectedOutline(e){const ctx=canvas.getContext('2d');ctx.reset();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.translate(canvas.width/2,canvas.height/2);ctx.scale(1,1);let key=e.target.value;if(key===undefined) return;let[l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);let scale=Math.sqrt(cookieCutterArea/a);console.log("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);let a0=[1,0];let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale*5});plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});}
+function downloadOutlines(){if(outlines&&brickworks){const outlinesCopy={};for(let key in outlines){let outline={};outlinesCopy[key]=outline;let valueArrayCopy=[...outlines[key]["turtlePath"]];outlinesCopy[key]["turtlePath"]=valueArrayCopy;valueArrayCopy.forEach(([l,angRad],i,arr)=>{arr[i]=[l,Math.round(angRad*rad2deg*1000)/1000];});};const content='{\n"outlines":'+stringifyFormatted(outlinesCopy,2,3)+', \n"brickworks":'+stringifyFormatted(brickworks,2,2)+"\n}";const blob=new Blob([content],{type:'text/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='cookie-cutters_downloaded.json';link.click();URL.revokeObjectURL(link.href);}};let{OutputText,Canvas,Tab,Box,VBox,HBox,FloatSlider,Button,FileInput,Dropdown}=modules["HTML-widgets.js"];const canvas=Canvas({width:500,height:500});const downloadBtn=Button('Download Outlines',downloadOutlines);const uploadOutlinesFile=FileInput({accept:"application/json",onChange:readSingleFile});const outlineSelector=Dropdown([],drawSelectedOutline);updateOutlineSelector();const canvasContainer=Box([canvas]);const controls=VBox([downloadBtn,uploadOutlinesFile,outlineSelector],{style:{width:'300px',maxwidth:'300px',border:"2px solid red"}});const title="cookie-cutter";function createPaneContent({landscape=true}){if(landscape){return HBox([controls,canvasContainer]);}
+else{return VBox([canvasContainer,controls]);}}
+const myDefault={title:title,content:createPaneContent};;function createPane({landscape=true}){return{title:'Cookie-Cutter',content:createPaneContent({landscape:landscape})}}
+if(!("modules" in global)){global["modules"]={}}
+global.modules["cookiecutter.js"]={title:title,createPaneContent:createPaneContent,myDefault:myDefault,default:myDefault,createPane:createPane};})(window);(function(global){let{OutputText}=modules["HTML-widgets.js"];const logElement=OutputText({id:"console-output"});function copyToClipboard(text){if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(text).then(()=>{console.log('Text copied to clipboard');}).catch(err=>{console.error('Could not copy text: ',err);});} else{return new Promise((resolve,reject)=>{const tempInput=document.createElement('textarea');tempInput.value=text;document.body.appendChild(tempInput);tempInput.select();try{const successful=document.execCommand('copy');document.body.removeChild(tempInput);if(successful){resolve(console.log('Text copied to clipboard (fallback)'));} else{reject(new Error('Copy command was unsuccessful'));}} catch(err){document.body.removeChild(tempInput);reject(new Error('Unable to copy text'));}});}}
+function downloadApplication(){const link=document.createElement('a');link.href="./Turtle.html";link.download="Turtle.html";link.click();};let{Button,FloatSlider,Box,VBox,HBox}=modules["HTML-widgets.js"];const downloadAppBtn=Button('Download Application',downloadApplication);function createPane1Content({landscape=true}){return landscape?VBox([HBox([FloatSlider({min:0,max:10,value:5,orientation:'vertical'}),downloadAppBtn]),]):HBox([VBox([FloatSlider({min:0,max:10,value:5,orientation:'vertical'}),Button('Download G-Code',()=>console.log('G-Code download initiated'))]),])}
+const pane1={title:"App",content:createPane1Content};let pane2=modules["cookiecutter.js"].default;const clearLogBtn=Button("Clear Log",()=>{logElement.innerHTML=''},{style:{width:"150px"}})
+const copyToClipboardBtn=Button("Copy to Clipboard",()=>{if(logElement){copyToClipboard(logElement.innerText).then(()=>{}).catch(err=>{console.error(err);});}},{style:{width:"150px"}});const logPane=VBox([HBox([clearLogBtn,copyToClipboardBtn]),logElement]);function createPane3Content({landscape=true}){return logPane;}
+const pane3={title:"log",content:createPane3Content};let{Tab}=modules["HTML-widgets.js"];function createTabbedInterface(paneCreators,options={landscape:true}){const tabs=Tab(paneCreators.map((_,index)=>({title:paneCreators[index].title,content:paneCreators[index].content(options)})));tabs.showTab(1);return{tabWidget:tabs,updateContent:(newOptions)=>{paneCreators.forEach((paneCreator,index)=>{const newContent=paneCreator.content(newOptions);tabs.updateTabContent(index,newContent);});}};}
+function listAllProperties(obj){const props=Object.getOwnPropertyNames(obj);const symbols=Object.getOwnPropertySymbols(obj);const allProps=[...props,...symbols];console.log("allProps",allProps);allProps.forEach(prop=>{let descriptor=Object.getOwnPropertyDescriptor(obj,prop);console.log(prop,"-",typeof obj[prop]==='function'?'method':typeof obj[prop]==='object'?'object':typeof obj[prop]);console.log("    Enumerable:",descriptor.enumerable);console.log("    Writable:",descriptor.writable);console.log("    Configurable:",descriptor.configurable);if(descriptor.get||descriptor.set){console.log("    Getter:",!!descriptor.get);console.log("    Setter:",!!descriptor.set);}});}
+function logNavigatorDetails(){for(let prop in navigator){if(navigator.hasOwnProperty(prop)){let descriptor=Object.getOwnPropertyDescriptor(navigator,prop);let value=navigator[prop];let displayValue=typeof value==='object'?JSON.stringify(value,null,2):value;if(typeof value==='function'){displayValue="Function";}
+console.log(`${prop} - Type: ${typeof value}, Value: ${displayValue}`,descriptor.enumerable?"(enumerable)":"(non-enumerable)");} else{console.log(`${prop} - Type: ${typeof navigator[prop]}, Value: ${navigator[prop]} (inherited)`);}}}
+let tabs;document.addEventListener('DOMContentLoaded',()=>{tabs=createTabbedInterface([pane1,pane2,pane3],{landscape:window.innerHeight<window.innerWidth});document.getElementById('tabsContainer').appendChild(tabs.tabWidget);logNavigatorDetails();});const debounce=(func,wait)=>{let timeout;return function(...args){const later=()=>{clearTimeout(timeout);func.apply(this,args);};clearTimeout(timeout);timeout=setTimeout(later,wait);};};window.addEventListener('resize',debounce(function(event){const isLandscape=window.innerHeight<window.innerWidth;tabs.updateContent({landscape:isLandscape});console.log('resize event triggered: landscape='+isLandscape)},250));})(window);</script>
 </body>
 </html>

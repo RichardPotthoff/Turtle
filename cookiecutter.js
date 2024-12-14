@@ -1,5 +1,5 @@
 //import {debugLog} from "./logging.js";
-import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle.js';
+import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle-graphics.js';
 import {cookiecutters} from './outline-data.js';
 import {stringifyFormatted} from "./json_utils.js";
 let {outlines, brickworks}=JSON.parse(JSON.stringify(cookiecutters));
