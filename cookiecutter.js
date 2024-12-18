@@ -8,7 +8,8 @@ let cookieCutterArea=2000;
 function updateOutlineSelector(){
 // Update options when needed
 	Object.entries(outlines).forEach(([k2,v2]) => {
-			v2["turtlePath"].forEach((x)=>{x[1]*=deg;});
+		    v2.startAngle=v2.startAngle!==undefined?v2.startAngle*deg:0.0
+			v2.turtlePath.forEach((x)=>{x[1]*=deg;});
 	});
 outlineSelector.updateOptions(Object.entries(outlines).map(([k2, v2]) => ({
     text: k2,
@@ -50,18 +51,20 @@ function drawSelectedOutline(e) {
 	ctx.reset();
 	ctx.clearRect(0,0,canvas.width,canvas.height);
 	ctx.translate(canvas.width/2,canvas.height/2);
-	ctx.scale(1,1);
+	ctx.scale(5,-5);
 // 	debugLog("target value= "+e.value);
 //	debugLog("outlines[e.target.value]= "+outlines[e.target.value]);
     let key=e.target.value;
     if (key===undefined) return;
-	let [l,a,,,centroid]=TurtlePathLengthArea(outlines[key]["turtlePath"]);
-	let scale=Math.sqrt(cookieCutterArea/a);
+	let {turtlePath,startAngle}=outlines[key];
+	let a0=[Math.cos(startAngle),Math.sin(startAngle)];
+	let [l,a,,,centroid]=TurtlePathLengthArea(turtlePath,startAngle);
+	let scale=Math.sqrt(cookieCutterArea/Math.abs(a));
 	console.log("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
-	let a0=[1,0];
-	let p0=[-centroid[0]*scale*5,-centroid[1]*scale*5];
-    plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale*5});
-	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});
+	let p0=[-centroid[0]*scale,-centroid[1]*scale];
+	ctx.strokeStyle='blue';
+    plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale});
+//	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});
 //	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:-3,scale:scale*5});
 }
 

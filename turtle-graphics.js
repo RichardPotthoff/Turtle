@@ -1,4 +1,4 @@
-export function TurtlePathLengthArea(TurtlePath) {
+export function TurtlePathLengthArea(TurtlePath,arcStartAngle=0) {
     /**
      * Calculates the length, area, end point, final angle, and centroid of a shape formed by arc segments.
      * 
@@ -14,7 +14,7 @@ export function TurtlePathLengthArea(TurtlePath) {
     let totalArea = 0; // Total area
     let firstMoment = [0, 0]; // 1st moment around x and y axis
     let arcStartPoint = [0, 0]; // Starting point of each arc segment
-    let arcStartAngle = 0; // Starting angle of each arc
+//    let arcStartAngle = 0; // Starting angle of each arc
     let arcEndAngle = 0; // Ending angle of each arc
     for (let [arcLength, arcAngle] of TurtlePath) {
         // Pre-calculate frequently used terms:

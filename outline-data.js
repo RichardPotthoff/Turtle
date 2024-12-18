@@ -49,6 +49,7 @@ export const cookiecutters={
       [ 2, 150.0 ]
     ]},
     "Heart":{ 
+	  "startAngle": 180,
 	  "turtlePath": [
       [ 0.45, -45.0 ],
       [ 10.0, 180.0 ],
@@ -59,6 +60,7 @@ export const cookiecutters={
       [ 0.45, -45.0 ]
     ]},
     "Duck":{ 
+	  "startAngle": 180,
 	  "turtlePath": [
       [ 0.4, -10.0 ],
       [ 13.297, 25.0 ],
@@ -75,6 +77,7 @@ export const cookiecutters={
       [ 5, -125.0 ]
     ]},
     "Tree":{ 
+	  "startAngle": 180,
 	  "turtlePath": [
       [ 0.75, 40.0 ],
       [ 3, 0.0 ],
