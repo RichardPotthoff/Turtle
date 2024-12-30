@@ -36,7 +36,7 @@ function copyToClipboard(text) {
 
 function downloadApplication() {
 	const link = document.createElement('a');
-        link.href ="./Turtle.html";
+        link.href ="./index.html";
         link.download = "Turtle.html";
         link.click();
 };
