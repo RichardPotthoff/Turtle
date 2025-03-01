@@ -61,7 +61,8 @@ function createPane1Content({landscape=true}){
             HBox([
                 VBox ([
                     FloatSlider({ min: 0, max: 10, value: 5, orientation: 'vertical' }),
-					Button('Download G-Code', () => console.log('G-Code download initiated'))
+					downloadAppBtn
+				// 	Button('Download G-Code', () => console.log('G-Code download initiated'))
                 ]),
                 // Add more design elements
             ])
@@ -70,9 +71,10 @@ function createPane1Content({landscape=true}){
 const pane1={title:"App",content:createPane1Content};
 
 import pane2 from './cookiecutter.js';
-
+//import { brickworkDefault as pane4 } from './cookiecutter.js';
 
 const clearLogBtn=Button("Clear Log",()=>{logElement.innerHTML=''}, {style:{width:"150px"}})
+
 const copyToClipboardBtn=Button("Copy to Clipboard",()=>{
   if (logElement) {
     copyToClipboard(logElement.innerText).then(() => {
@@ -89,6 +91,8 @@ function createPane3Content({landscape=true}){
        return logPane; // Placeholder for G-Code content
 }
 const pane3={title:"log",content:createPane3Content};
+
+import pane4 from './brickwork.js'
 import {Tab} from './HTML-widgets.js';
 
 function createTabbedInterface(paneCreators, options={landscape:true}) {
@@ -160,7 +164,7 @@ function logNavigatorDetails() {
 let tabs;
 
 document.addEventListener('DOMContentLoaded',()=>{
-    tabs = createTabbedInterface([pane1, pane2, pane3], {landscape: window.innerHeight < window.innerWidth});
+    tabs = createTabbedInterface([pane1, pane2, pane4, pane3], {landscape: window.innerHeight < window.innerWidth});
     document.getElementById('tabsContainer').appendChild(tabs.tabWidget);
 //    logElement.appendText("This is some output text.");
     logNavigatorDetails();

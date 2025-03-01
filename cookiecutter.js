@@ -2,7 +2,8 @@
 import {plot_segments,SegmentsLengthArea,TurtlePathLengthArea} from './turtle-graphics.js';
 import {cookiecutters} from './outline-data.js';
 import {stringifyFormatted} from "./json_utils.js";
-let {outlines, brickworks}=JSON.parse(JSON.stringify(cookiecutters));
+//make a copy of the outlines so we can convert degrees to radians
+let outlines=JSON.parse(JSON.stringify(cookiecutters.outlines));
 let cookieCutterArea=2000;
 
 function updateOutlineSelector(){
@@ -15,8 +16,6 @@ outlineSelector.updateOptions(Object.entries(outlines).map(([k2, v2]) => ({
     text: k2,
     value: k2
 })));
-//    const event = new Event ( 'change', { bubbles: true });
-//outlineSelector.dispatchEvent(event);
 };
 
 
@@ -61,7 +60,9 @@ function drawSelectedOutline(e) {
 	let [l,a,,,centroid]=TurtlePathLengthArea(turtlePath,startAngle);
 	let scale=Math.sqrt(cookieCutterArea/Math.abs(a));
 	console.log("key= "+key+", l= "+l+", a= "+a+", scale= "+scale);
-	let p0=[-centroid[0]*scale,-centroid[1]*scale];
+	let offset=[0,0];//[0,18]
+	//scale=scale*0.65;
+	let p0=[-centroid[0]*scale-offset[0],-centroid[1]*scale-offset[1]];
 	ctx.strokeStyle='blue';
     plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,scale:scale});
 //	plot_segments(ctx,{segs:outlines[key]["turtlePath"],p0:p0,a0:a0,offs:3,scale:scale*5});
@@ -122,7 +123,3 @@ export function createPaneContent({landscape=true}){
 const myDefault={title:title,content:createPaneContent};
 
 export default myDefault;
-
-export function createPane({landscape=true}){
-    return {title: 'Cookie-Cutter',content:createPaneContent({landscape:landscape})}
-}

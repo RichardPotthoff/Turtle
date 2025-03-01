@@ -54,7 +54,7 @@ export function FloatSlider(options = {}) {
 
     // Add event listener for value change
 	if (options.onChange){
-      input.addEventListener('input',option.onChange);
+      input.addEventListener('input',options.onChange);
     };
 
     return input;
@@ -192,7 +192,6 @@ export function Dropdown(options = [], onSelect) {
         // Store the currently selected value before clearing options
         const currentValue = dropdownButton.dataset.value;
         let newSelectedValue = newOptions[0] ? newOptions[0].value : null;
-
         // Clear existing options
         dropdownList.innerHTML = '';
         
