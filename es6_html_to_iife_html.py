@@ -41,23 +41,29 @@ combined_minify_patterns=combine_patterns(
 
 minify_javascript=lambda code:combined_re_sub(code,combined_minify_patterns)      
 
+def add_exports(exportlist,exports):
+  for item in exportlist.split(','):
+    name,*alias=item.split('as')
+    alias=alias[0] if alias else name
+    exports[alias.strip()]=name.strip()
+  return ''
 
 def convert_es6_to_iife(content, module_filename=None, minify=False):
   imports={}
-  import_pattern = r'(?=^|;)\s*(import\s+(?:(?:(?:(?P<default_import>\w+)(?:[,]|\s)\s*)?(?:(?P<destructuring>\{[^}]*\}\s)|(?:\*\s+as\s+(?P<module_alias>\w+))\s)?)\s*from\s+)?[\'"](?P<module_path>[^"\']+)[\'"]\s*;?)'
+  import_pattern = r'(?=^|;)\s*(import\s+(?:(?:(?:(?P<default_import>\w+)(?:[,]|\s)\s*)?(?:(?P<deconstruction>\{[^}]*\}\s)|(?:\*\s+as\s+(?P<module_alias>\w+))\s)?)\s*from\s+)?[\'"](?P<module_path>[^"\']+)[\'"]\s*;?)'
   
   def import_callback(match):
       groupdict=match.groupdict()
       default_import=groupdict['default_import'] # these are the named groups in the regular expression
-      destructuring=groupdict['destructuring']
+      deconstruction=groupdict['deconstruction']
       module_alias=groupdict['module_alias']
       module_path=groupdict['module_path'].strip()
       module_filename=os.path.basename(module_path)
       imports[module_filename]=module_path
       result=[]
-      if destructuring:
-        destructuring=re.sub(r'(\w+)\s*as\s*(\w+)',r'\1 : \2',destructuring.strip()) #replace 'as' with ':'
-        result.append(f'let {destructuring.strip()} = modules["{module_filename}"];')
+      if deconstruction:
+        deconstruction=re.sub(r'(\w+)\s*as\s*(\w+)',r'\1 : \2',deconstruction.strip()) #replace 'as' with ':'
+        result.append(f'let {deconstruction.strip()} = modules["{module_filename}"];')
       if module_alias:result.append(f'let {module_alias.strip()} = modules["{module_filename}"];')
       if default_import:result.append(f'let {default_import.strip()} = modules["{module_filename}"].default;')
       return '\n'.join(result)
@@ -69,7 +75,7 @@ def convert_es6_to_iife(content, module_filename=None, minify=False):
       groupdict=match.groupdict()
       export_type=groupdict['export_type']
       export_name=groupdict['export_name'].strip()
-      exports[export_name]=export_name
+      exports[export_name]=export_name # possibly add alias syntax later
       if groupdict['export_default']:
         exports['default']=export_name;
       if export_type:
@@ -77,7 +83,7 @@ def convert_es6_to_iife(content, module_filename=None, minify=False):
       else:
         return ''
       
-  # here we arse parsing for import and export patterns.
+  # here we are parsing for import and export patterns.
   # strings and comment patterns are detected simultaneously, thus preventing the detection of 
   # import/export patterns inside of strings and comments
   combined_es6_to_iife_patterns=combine_patterns(
@@ -87,6 +93,7 @@ def convert_es6_to_iife(content, module_filename=None, minify=False):
       (multiline_comment_pattern, (lambda match:'') if minify else (lambda match:match.group())), #
       (import_pattern,import_callback),#parse import statements, and replace them with equivalent let statements
       (export_pattern,export_callback),#parse export statements, collect export names, remove 'export [default]'
+      (r'(?=^|;)\s*(export\s+\{(?P<export_list>[^}]*)\}\s*;?)', lambda match:add_exports(match.group('export_list'), exports) ), # ad-hoc pattern for grouped exports: " export {f1, f2 as g, ...}; "
       )
   
   #the next line does all the work: the souce code is modified by the callback functions, and the
@@ -95,7 +102,7 @@ def convert_es6_to_iife(content, module_filename=None, minify=False):
   content=combined_re_sub(content,combined_es6_to_iife_patterns)
   
   if exports:  # Only add the export object if there are exports
-      iife_wrapper = f'\n(function(global) {{\n{content}\nif(!("modules" in global)){{\n global["modules"]={{}}\n}}\nglobal.modules["{module_filename}"] = {{{",".join(str(key)+":"+str(value) for key,value in exports.items())}}} ;\n}})(window);'
+      iife_wrapper = f'\n(function(global) {{\n{content}\nif(!("modules" in global)){{\n global["modules"]={{}}\n}}\nglobal.modules["{module_filename}"] = {{{",".join((str(key)+":"+str(value) if value and (key!=value) else str(key)) for key,value in exports.items())}}} ;\n}})(window);'
   else:
       iife_wrapper = f'\n(function(global) {{\n{content}\n}})(window);'
       
@@ -153,7 +160,8 @@ def process_html(html_path,minify=False,output_file='output.html'):
                 del script['src']  # Remove the src attribute as we've included the content
             else:
                 content=script.string
-                module_filename=None
+                #module_filename=None
+                module_filename=script.get('name')
                 module_dir=os.path.dirname(html_path)
             script['type'] = 'text/javascript'  # Change type to standard JavaScript
             # Insert the converted IIFE content for this module and its dependencies
@@ -176,7 +184,7 @@ def process_html(html_path,minify=False,output_file='output.html'):
 
     with open(output_file, 'w') as file:
         file.write(str(soup))
-
+  
 if __name__ == "__main__":
 #    module_filename='index.js'
 #    print(convert_es6_to_iife(open(module_filename).read(),module_filename=module_filename,minify=False)[0])
